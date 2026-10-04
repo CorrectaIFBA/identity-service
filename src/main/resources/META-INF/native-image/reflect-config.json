@@ -1,0 +1,12 @@
+[
+  {
+    "name": "io.correcta.identities.grpc.User",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "io.correcta.identities.grpc.*",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  }
+]
