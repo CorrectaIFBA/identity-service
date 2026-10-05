@@ -1,16 +1,10 @@
 package io.correcta.identities.security.components.providers.activation
 
-import io.correcta.identities.config.properties.JsonWebTokenProperties
 import io.correcta.identities.exceptions.InternalServerErrorException
 import io.correcta.identities.exceptions.UnauthorizedException
 import io.correcta.identities.security.components.providers.activation.models.ActivationRequestAuthentication
 import io.correcta.identities.security.components.providers.activation.models.ActivationRequestPrincipal
-import io.correcta.identities.security.components.providers.user.models.UserPrincipal
 import io.correcta.identities.service.AccountService
-import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.Jwts.claims
-import io.jsonwebtoken.security.Keys
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.stereotype.Component
 
 @Component

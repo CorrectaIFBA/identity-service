@@ -4,7 +4,7 @@ import io.correcta.identities.controllers.AuthenticationController
 import io.correcta.identities.models.request.LoginUserRequest
 import io.correcta.identities.models.request.RefreshTokenRequest
 import io.correcta.identities.models.response.TokenResponse
-import io.correcta.identities.security.components.providers.user.models.UserPrincipal
+import io.correcta.identities.security.components.providers.profile.models.ProfilePrincipal
 import io.correcta.identities.service.AuthenticationService
 import io.correcta.identities.service.ClientInfoResolver
 import jakarta.servlet.http.HttpServletRequest
@@ -30,7 +30,7 @@ class AuthenticationControllerImpl(
         return ResponseEntity.ok(tokenResponse)
     }
 
-    override fun logoutUser(principal: UserPrincipal): ResponseEntity<Void> {
+    override fun logoutUser(principal: ProfilePrincipal): ResponseEntity<Void> {
         authenticationService.doLogOut(
             sessionId = principal.sessionId,
         )

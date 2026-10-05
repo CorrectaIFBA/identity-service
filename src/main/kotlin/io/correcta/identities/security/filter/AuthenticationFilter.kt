@@ -1,7 +1,7 @@
 package io.correcta.identities.security.filter
 
 import io.correcta.identities.security.components.providers.activation.ActivationRequestAuthenticationProvider
-import io.correcta.identities.security.components.providers.user.UserAuthenticationProvider
+import io.correcta.identities.security.components.providers.profile.ProfileAuthenticationProvider
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
@@ -13,7 +13,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver
 
 class AuthenticationFilter(
     val activationRequestAuthenticationProvider: ActivationRequestAuthenticationProvider,
-    val userAuthenticationProvider: UserAuthenticationProvider,
+    val profileAuthenticationProvider: ProfileAuthenticationProvider,
     val trustedCookieRequestOrigins: List<String>,
     val handlerExceptionResolver: HandlerExceptionResolver
 ) : OncePerRequestFilter() {
@@ -45,7 +45,7 @@ class AuthenticationFilter(
                         activationRequestAuthenticationProvider.getAuthentication(token)
                     }
 
-                    else -> userAuthenticationProvider.getAuthentication(token)
+                    else -> profileAuthenticationProvider.getAuthentication(token)
                 }
 
                 SecurityContextHolder.getContext().authentication = authentication

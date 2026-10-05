@@ -1,8 +1,8 @@
-package io.correcta.identities.security.components.providers.user.models
+package io.correcta.identities.security.components.providers.profile.models
 
 import io.correcta.identities.entities.InstitutionalProfileType
 
-data class UserPrincipal(
+data class ProfilePrincipal(
     val profileId: String,
     val sessionId: String,
 

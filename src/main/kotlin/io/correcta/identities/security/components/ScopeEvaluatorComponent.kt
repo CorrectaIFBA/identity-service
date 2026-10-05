@@ -1,10 +1,8 @@
 package io.correcta.identities.security.components
 
-import io.correcta.identities.entities.AccountCredential
 import io.correcta.identities.entities.InstitutionalProfileType
-import io.correcta.identities.grpc.User
 import io.correcta.identities.security.components.providers.activation.models.ActivationRequestPrincipal
-import io.correcta.identities.security.components.providers.user.models.UserPrincipal
+import io.correcta.identities.security.components.providers.profile.models.ProfilePrincipal
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
@@ -28,7 +26,7 @@ class ScopeEvaluatorComponent {
 
     fun isTraitedWith(trait: String): Boolean {
         val authentication = currentAuthentication() ?: return false
-        if (authentication.principal !is UserPrincipal) return false
+        if (authentication.principal !is ProfilePrincipal) return false
 
         return authentication.authorities.any { it.authority == trait }
     }
@@ -37,8 +35,8 @@ class ScopeEvaluatorComponent {
         return currentAccountCredential() != null && !isTraitedWith(trait)
     }
 
-    fun currentAccountCredential(): UserPrincipal? {
-        return currentAuthentication()?.principal as? UserPrincipal
+    fun currentAccountCredential(): ProfilePrincipal? {
+        return currentAuthentication()?.principal as? ProfilePrincipal
     }
 
     private fun currentAuthentication(): Authentication? {

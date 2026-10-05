@@ -18,7 +18,7 @@ import io.correcta.identities.repositories.AccountSessionRepository
 import io.correcta.identities.repositories.AccountTraitRepository
 import io.correcta.identities.repositories.InstitutionalProfileRepository
 import io.correcta.identities.security.components.providers.activation.models.ActivationRequestPrincipal
-import io.correcta.identities.security.components.providers.user.models.UserPrincipal
+import io.correcta.identities.security.components.providers.profile.models.ProfilePrincipal
 import io.correcta.identities.utils.HashExt.toSha256Hash
 import io.correcta.identities.utils.TokenExt.generateSecureStatelessToken
 import org.springframework.security.core.context.SecurityContextHolder
@@ -42,7 +42,7 @@ class AccountService(
     @Transactional(readOnly = true)
     fun getSelfAccountInfo(): GetSelfAccountInfoResponse {
         val authentication = SecurityContextHolder.getContext().authentication
-        val principal = authentication.principal as? UserPrincipal
+        val principal = authentication.principal as? ProfilePrincipal
             ?: throw InternalServerErrorException("Falha ao recuperar o principal da autenticação")
 
         val session = accountSessionRepository.findById(principal.sessionId).orElse(null)

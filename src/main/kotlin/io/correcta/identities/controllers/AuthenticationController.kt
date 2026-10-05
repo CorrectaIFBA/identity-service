@@ -4,7 +4,7 @@ import io.correcta.identities.models.request.LoginUserRequest
 import io.correcta.identities.models.request.RefreshTokenRequest
 import io.correcta.identities.models.response.TokenResponse
 import io.correcta.identities.security.annotations.IsLoggedUser
-import io.correcta.identities.security.components.providers.user.models.UserPrincipal
+import io.correcta.identities.security.components.providers.profile.models.ProfilePrincipal
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -56,7 +56,7 @@ interface AuthenticationController {
     )
     @PostMapping("/logout")
     @IsLoggedUser
-    fun logoutUser(@AuthenticationPrincipal principal: UserPrincipal): ResponseEntity<Void>
+    fun logoutUser(@AuthenticationPrincipal principal: ProfilePrincipal): ResponseEntity<Void>
 
     @Operation(
         summary = "Atualiza o token de acesso",
