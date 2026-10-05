@@ -87,10 +87,10 @@ class SecurityAspect(
     }
 
     private fun throwAccessDenied(): Nothing {
-        throw AuthorizationDeniedException("You do not have permission to access this resource.")
+        throw AuthorizationDeniedException("Você não tem permissão para acessar este recurso.")
     }
 
     private fun throwNotLoggedIn(): Nothing {
-        throw UnauthorizedException("You must be logged in to access this resource.")
+        throw UnauthorizedException("É necessário estar autenticado para acessar este recurso.")
     }
 }

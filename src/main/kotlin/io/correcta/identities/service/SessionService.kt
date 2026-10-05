@@ -6,6 +6,7 @@ import io.correcta.identities.entities.InstitutionalProfileType
 import io.correcta.identities.exceptions.InternalServerErrorException
 import io.correcta.identities.exceptions.UnauthorizedException
 import io.correcta.identities.models.request.ClientInfo
+import io.correcta.identities.repositories.AccountRefreshTokenRepository
 import io.correcta.identities.repositories.AccountSessionRepository
 import io.correcta.identities.security.components.providers.profile.models.ProfilePrincipal
 import java.time.Instant
@@ -16,7 +17,8 @@ import org.springframework.stereotype.Service
 
 @Service
 class SessionService(
-    private val accountSessionRepository: AccountSessionRepository
+    private val accountSessionRepository: AccountSessionRepository,
+    private val accountRefreshTokenRepository: AccountRefreshTokenRepository
 ) {
 
     fun createNewSession(
@@ -47,17 +49,17 @@ class SessionService(
         val session = accountSessionRepository
             .findById(sessionId)
             .orElseThrow {
-                UnauthorizedException("Session not found.")
+                UnauthorizedException("A sessão não foi encontrada.")
             }
 
         val now = Instant.now()
 
         if (session.revokedAt != null) {
-            throw UnauthorizedException("Session revoked.")
+            throw UnauthorizedException("A sessão foi revogada.")
         }
 
         if (!session.expiresAt.isAfter(now)) {
-            throw UnauthorizedException("Session expired.")
+            throw UnauthorizedException("A sessão expirou.")
         }
 
         return session
@@ -103,6 +105,20 @@ class SessionService(
         accountSessionRepository.save(session)
     }
 
+    fun revokeAllSessionsForProfile(profileId: String, reason: String) {
+        val now = Instant.now()
+
+        accountSessionRepository.findActiveSessionsByProfileId(profileId).forEach { session ->
+            session.revoke(reason)
+            accountSessionRepository.save(session)
+
+            accountRefreshTokenRepository.revokeAllBySessionId(
+                sessionId = session.id!!,
+                revokedAt = now
+            )
+        }
+    }
+
     fun revokeSession(
         sessionId: String,
         reason: String? = null
@@ -110,7 +126,7 @@ class SessionService(
         val session = accountSessionRepository
             .findById(sessionId)
             .orElseThrow {
-                UnauthorizedException("Session not found.")
+                UnauthorizedException("A sessão não foi encontrada.")
             }
 
         session.revokedAt = Instant.now()

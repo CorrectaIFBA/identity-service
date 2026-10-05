@@ -14,8 +14,12 @@ class AccountCredential(
     @Id @UuidGenerator(style = UuidGenerator.Style.TIME)
     var id: String? = null,
 
-    @OneToOne
-    @JoinColumn(name = "institutional_profile_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+        name = "institutional_profile_id",
+        nullable = false,
+        unique = true
+    )
     var institutionalProfile: InstitutionalProfile,
 
     @Column(nullable = false)

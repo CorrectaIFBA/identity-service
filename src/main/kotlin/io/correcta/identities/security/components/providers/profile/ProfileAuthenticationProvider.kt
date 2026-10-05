@@ -6,6 +6,7 @@ import io.correcta.identities.security.components.providers.profile.models.Profi
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
 
 @Component
@@ -29,6 +30,11 @@ class ProfileAuthenticationProvider(
             type = claims["profile", String::class.java].let { InstitutionalProfileType.valueOf(it) }
         )
 
-        return UsernamePasswordAuthenticationToken(principal, null, emptyList())
+        val authorities = (claims["traits"] as? List<*>)
+            .orEmpty()
+            .filterIsInstance<String>()
+            .map(::SimpleGrantedAuthority)
+
+        return UsernamePasswordAuthenticationToken(principal, null, authorities)
     }
 }

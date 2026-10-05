@@ -39,4 +39,11 @@ class InstitutionalProfile(
     @LastModifiedDate
     @Column(nullable = false)
     var updatedAt: Instant? = null
-)
+) {
+
+    @OneToOne(
+        mappedBy = "institutionalProfile"
+    )
+    var accountCredential: AccountCredential? = null
+
+}

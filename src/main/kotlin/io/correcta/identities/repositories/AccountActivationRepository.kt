@@ -1,6 +1,7 @@
 package io.correcta.identities.repositories
 
 import io.correcta.identities.entities.AccountActivation
+import java.time.Instant
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -12,6 +13,16 @@ interface AccountActivationRepository : JpaRepository<AccountActivation, String>
     fun findByTokenHash(tokenHash: String): AccountActivation?
 
     @Modifying
-    @Query("UPDATE AccountActivation a SET a.consumedAt = CURRENT_TIMESTAMP WHERE a.id = :activationId AND a.consumedAt IS NULL")
-    fun markAsConsumed(@Param("activationId") activationId: String): Int
+    @Query("UPDATE AccountActivation a SET a.consumedAt = :consumedAt WHERE a.id = :activationId AND a.consumedAt IS NULL")
+    fun markAsConsumed(
+        @Param("activationId") activationId: String,
+        @Param("consumedAt") consumedAt: Instant
+    ): Int
+
+    @Modifying
+    @Query("UPDATE AccountActivation a SET a.consumedAt = :consumedAt WHERE a.accountCredential.id = :accountCredentialId AND a.consumedAt IS NULL")
+    fun markAllAsConsumedByAccountCredentialId(
+        @Param("accountCredentialId") accountCredentialId: String,
+        @Param("consumedAt") consumedAt: Instant
+    ): Int
 }

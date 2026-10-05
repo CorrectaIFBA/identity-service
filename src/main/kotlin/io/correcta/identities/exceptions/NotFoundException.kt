@@ -4,4 +4,4 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
-class NotFoundException(message: String = "The requested resource could not be found.") : RuntimeException(message)
+class NotFoundException(message: String = "O recurso solicitado não foi encontrado.") : RuntimeException(message)

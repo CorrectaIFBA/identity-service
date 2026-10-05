@@ -4,4 +4,4 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
 @ResponseStatus(HttpStatus.FORBIDDEN)
-class ForbiddenException(message: String = "The request could not be completed due to a lack of necessary permissions.") : RuntimeException(message)
+class ForbiddenException(message: String = "Você não tem permissão para acessar este recurso.") : RuntimeException(message)

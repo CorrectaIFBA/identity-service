@@ -8,6 +8,7 @@ import io.correcta.identities.exceptions.UnauthorizedException
 import io.correcta.identities.models.request.GeneratedToken
 import io.correcta.identities.models.response.TokenResponse
 import io.correcta.identities.repositories.AccountRefreshTokenRepository
+import io.correcta.identities.repositories.AccountTraitRepository
 import io.correcta.identities.utils.HashExt.toSha256Hash
 import io.correcta.identities.utils.TokenExt.generateSecureStatelessToken
 import io.jsonwebtoken.Jwts
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service
 @Service
 class TokenService(
     private val refreshTokenRepository: AccountRefreshTokenRepository,
+    private val accountTraitRepository: AccountTraitRepository,
     private val properties: JsonWebTokenProperties
 ) {
 
@@ -36,7 +38,8 @@ class TokenService(
         val accessToken = generateAccessToken(
             subject = credential.institutionalProfile.id!!,
             sessionId = sessionId,
-            profileType = credential.institutionalProfile.type.name
+            profileType = credential.institutionalProfile.type.name,
+            traits = findTraitValues(credential)
         )
 
         val refreshToken = generateRefreshToken(
@@ -122,9 +125,10 @@ class TokenService(
          * Create another access JWT for the SAME session.
          */
         val accessToken = generateAccessToken(
-            subject = session.accountCredential.login,
+            subject = session.accountCredential.institutionalProfile.id!!,
             sessionId = requireNotNull(session.id),
-            profileType = session.accountCredential.institutionalProfile.type.name
+            profileType = session.accountCredential.institutionalProfile.type.name,
+            traits = findTraitValues(session.accountCredential)
         )
 
         return TokenResponse(
@@ -140,7 +144,8 @@ class TokenService(
     private fun generateAccessToken(
         subject: String,
         sessionId: String,
-        profileType: String
+        profileType: String,
+        traits: List<String>
     ): GeneratedToken {
         val now = Instant.now()
         val expiration =
@@ -152,6 +157,7 @@ class TokenService(
             .claim("sid", sessionId)
             .claim("type", "access")
             .claim("profile", profileType)
+            .claim("traits", traits)
             .setIssuedAt(Date.from(now))
             .setExpiration(Date.from(expiration))
             .signWith(signingKey)
@@ -165,6 +171,12 @@ class TokenService(
                     expiration
                 )
         )
+    }
+
+    private fun findTraitValues(credential: AccountCredential): List<String> {
+        return accountTraitRepository
+            .findAllByAccountCredentialIdOrderByCreatedAtAsc(requireNotNull(credential.id))
+            .map { it.value }
     }
 
     private fun generateRefreshToken(

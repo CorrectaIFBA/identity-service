@@ -5,6 +5,7 @@ import io.correcta.identities.entities.AccountCredential
 import io.correcta.identities.entities.InstitutionalProfile
 import io.correcta.identities.entities.InstitutionalProfileState
 import io.correcta.identities.entities.InstitutionalProfileType
+import io.correcta.identities.exceptions.BadRequestException
 import io.correcta.identities.exceptions.ConflictException
 import io.correcta.identities.exceptions.InternalServerErrorException
 import io.correcta.identities.exceptions.UnauthorizedException
@@ -36,6 +37,7 @@ class AccountService(
     val accountTraitRepository: AccountTraitRepository,
     val institutionalProfileRepository: InstitutionalProfileRepository,
     val passwordEncoder: PasswordEncoder,
+    val sessionService: SessionService,
     val transactionalMailProducer: TransactionalMailProducer,
 ) {
 
@@ -53,7 +55,7 @@ class AccountService(
 
     @Transactional(readOnly = true)
     fun checkIfCredentialExists(request: CreateCredentialRequest) {
-        val existingCredential = accountCredentialRepository.findById(request.login).orElse(null)
+        val existingCredential = accountCredentialRepository.findByLogin(request.login)
 
         if (existingCredential != null) {
             throw ConflictException("O login '${request.login}' já está em uso. Por favor, escolha outro login.")
@@ -69,6 +71,93 @@ class AccountService(
             )
         )
 
+        institutionalProfile.accountCredential = accountCredential
+
+        issueAccountActivation(institutionalProfile, accountCredential)
+    }
+
+    @Transactional
+    fun resendAccountActivation(institutionalProfile: InstitutionalProfile) {
+        when (institutionalProfile.state) {
+            InstitutionalProfileState.ACTIVE -> throw ConflictException("O perfil institucional já foi ativado.")
+            InstitutionalProfileState.INACTIVE -> throw ConflictException("O perfil institucional está inativo.")
+            InstitutionalProfileState.PENDING -> Unit
+        }
+
+        val accountCredential = requireAccountCredential(institutionalProfile)
+
+        accountActivationRepository.markAllAsConsumedByAccountCredentialId(accountCredential.id!!, Instant.now())
+
+        issueAccountActivation(institutionalProfile, accountCredential)
+    }
+
+    @Transactional
+    fun revokeProfileAccess(institutionalProfile: InstitutionalProfile) {
+        val principal = getAuthenticatedProfile()
+
+        ensureProfileCanBeDeactivated(institutionalProfile, principal)
+
+        institutionalProfile.state = InstitutionalProfileState.INACTIVE
+        institutionalProfile.active = false
+
+        institutionalProfileRepository.save(institutionalProfile)
+
+        accountActivationRepository.markAllAsConsumedByAccountCredentialId(
+            requireAccountCredential(institutionalProfile).id!!,
+            Instant.now()
+        )
+
+        sessionService.revokeAllSessionsForProfile(
+            profileId = institutionalProfile.id!!,
+            reason = "PROFILE_DEACTIVATED_BY: ${principal.profileId}"
+        )
+    }
+
+    @Transactional
+    fun restoreProfileAccess(institutionalProfile: InstitutionalProfile) {
+        if (institutionalProfile.state != InstitutionalProfileState.INACTIVE) {
+            throw ConflictException("O perfil institucional não está inativo.")
+        }
+
+        val accountCredential = requireAccountCredential(institutionalProfile)
+
+        institutionalProfile.state = if (accountCredential.password != null) {
+            InstitutionalProfileState.ACTIVE
+        } else {
+            InstitutionalProfileState.PENDING
+        }
+        institutionalProfile.active = true
+
+        institutionalProfileRepository.save(institutionalProfile)
+    }
+
+    @Transactional
+    fun createAccountPassword(request: CreatePasswordRequest) {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val principal = authentication.principal as? ActivationRequestPrincipal
+            ?: throw InternalServerErrorException("Falha ao recuperar o principal da autenticação")
+
+        val accountCredential = accountCredentialRepository.findById(principal.credentialId).orElse(null)
+            ?: throw InternalServerErrorException("Credencial não encontrada para esta solicitação. Por favor, contate a gerência de registros acadêmicos.")
+        val institutionalProfile = accountCredential.institutionalProfile
+
+        accountCredential.password = passwordEncoder.encode(request.password)
+
+        institutionalProfile.state = InstitutionalProfileState.ACTIVE
+
+        accountActivationRepository.markAsConsumed(principal.activationId, Instant.now())
+        accountCredentialRepository.save(accountCredential)
+        institutionalProfileRepository.save(institutionalProfile)
+    }
+
+    @Transactional(readOnly = true)
+    fun isNecessaryToCreateFirstStaffAccount(): Boolean {
+        val count = institutionalProfileRepository.countByType(InstitutionalProfileType.STAFF)
+
+        return count == 0L
+    }
+
+    private fun issueAccountActivation(institutionalProfile: InstitutionalProfile, accountCredential: AccountCredential) {
         val token = generateSecureStatelessToken()
 
         val accountActivation = accountActivationRepository.save(
@@ -86,30 +175,37 @@ class AccountService(
         )
     }
 
-    @Transactional
-    fun createAccountPassword(request: CreatePasswordRequest) {
-        val authentication = SecurityContextHolder.getContext().authentication
-        val principal = authentication.principal as? ActivationRequestPrincipal
-            ?: throw InternalServerErrorException("Falha ao recuperar o principal da autenticação")
+    private fun ensureProfileCanBeDeactivated(institutionalProfile: InstitutionalProfile, principal: ProfilePrincipal) {
+        if (institutionalProfile.state == InstitutionalProfileState.INACTIVE) {
+            throw ConflictException("O perfil institucional já está inativo.")
+        }
 
-        val accountCredential = accountCredentialRepository.findById(principal.credentialId).orElse(null)
-            ?: throw InternalServerErrorException("Credencial não encontrada para esta solicitação. Por favor, contate a gerência de registros acadêmicos.")
-        val institutionalProfile = accountCredential.institutionalProfile
+        if (institutionalProfile.id == principal.profileId) {
+            throw BadRequestException("Você não pode desativar o seu próprio perfil institucional.")
+        }
 
-        accountCredential.password = passwordEncoder.encode(request.password)
+        val isActiveStaffProfile = institutionalProfile.type == InstitutionalProfileType.STAFF &&
+                institutionalProfile.state == InstitutionalProfileState.ACTIVE
 
-        institutionalProfile.state = InstitutionalProfileState.ACTIVE
-
-        accountActivationRepository.markAsConsumed(principal.activationId)
-        accountCredentialRepository.save(accountCredential)
-        institutionalProfileRepository.save(institutionalProfile)
+        if (isActiveStaffProfile && institutionalProfileRepository.countByTypeAndState(
+                InstitutionalProfileType.STAFF,
+                InstitutionalProfileState.ACTIVE
+            ) <= 1
+        ) {
+            throw ConflictException("Não é possível desativar o último perfil institucional do tipo STAFF ativo.")
+        }
     }
 
-    @Transactional(readOnly = true)
-    fun isNecessaryToCreateFirstStaffAccount(): Boolean {
-        val count = institutionalProfileRepository.countByType(InstitutionalProfileType.STAFF)
+    private fun requireAccountCredential(institutionalProfile: InstitutionalProfile): AccountCredential {
+        return institutionalProfile.accountCredential
+            ?: throw InternalServerErrorException("Credencial não encontrada para este perfil institucional. Por favor, contate a gerência de registros acadêmicos.")
+    }
 
-        return count == 0L
+    private fun getAuthenticatedProfile(): ProfilePrincipal {
+        val authentication = SecurityContextHolder.getContext().authentication
+
+        return authentication.principal as? ProfilePrincipal
+            ?: throw InternalServerErrorException("Falha ao recuperar o principal da autenticação")
     }
 
    @Transactional

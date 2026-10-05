@@ -33,8 +33,8 @@ class CustomExceptionHandler {
 
         val validationErrorResponse =
             ValidationErrorResponse(
-                message = "Validation failed for the request parameters.",
-                errors = fieldErrors.associate { it.field to (it.defaultMessage ?: "Invalid value") },
+                message = "A validação dos parâmetros da requisição falhou.",
+                errors = fieldErrors.associate { it.field to (it.defaultMessage ?: "Valor inválido") },
             )
 
         log.warn("Validation errors : {} ; Parameters : {}", errorList, exception.bindingResult.target)
@@ -47,28 +47,28 @@ class CustomExceptionHandler {
     fun handleBadRequestException(exception: BadRequestException): ResponseEntity<ErrorResponse> {
         return ResponseEntity
             .status(400)
-            .body(ErrorResponse(exception.message ?: "The request could not be understood or was missing required parameters."))
+            .body(ErrorResponse(exception.message ?: "A requisição não pôde ser compreendida ou não possui os parâmetros obrigatórios."))
     }
 
     @ExceptionHandler(UnauthorizedException::class)
     fun handleUnauthorizedException(exception: UnauthorizedException): ResponseEntity<ErrorResponse> {
         return ResponseEntity
             .status(401)
-            .body(ErrorResponse(exception.message ?: "You must be logged in to access this resource."))
+            .body(ErrorResponse(exception.message ?: "É necessário estar autenticado para acessar este recurso."))
     }
 
     @ExceptionHandler(ForbiddenException::class)
     fun handleForbiddenException(exception: ForbiddenException): ResponseEntity<ErrorResponse> {
         return ResponseEntity
             .status(403)
-            .body(ErrorResponse(exception.message ?: "You do not have permission to access this resource."))
+            .body(ErrorResponse(exception.message ?: "Você não tem permissão para acessar este recurso."))
     }
 
     @ExceptionHandler(AuthorizationDeniedException::class)
     fun handleAuthorizationDeniedException(): ResponseEntity<ErrorResponse> {
         return ResponseEntity
             .status(403)
-            .body(ErrorResponse("You do not have permission to access this resource."))
+            .body(ErrorResponse("Você não tem permissão para acessar este recurso."))
     }
 
     @ExceptionHandler(NoResourceFoundException::class)
@@ -77,14 +77,14 @@ class CustomExceptionHandler {
 
         return ResponseEntity
             .status(404)
-            .body(ErrorResponse("The requested resource could not be found."))
+            .body(ErrorResponse("O recurso solicitado não foi encontrado."))
     }
 
     @ExceptionHandler(NotFoundException::class)
     fun handleNotFoundException(exception: NotFoundException): ResponseEntity<ErrorResponse> {
         return ResponseEntity
             .status(404)
-            .body(ErrorResponse(exception.message ?: "The requested resource could not be found."))
+            .body(ErrorResponse(exception.message ?: "O recurso solicitado não foi encontrado."))
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
@@ -98,21 +98,21 @@ class CustomExceptionHandler {
         // RFC 9110 requires a 405 to advertise what the endpoint does accept.
         if (supported.isNotEmpty()) response.header("Allow", supported)
 
-        return response.body(ErrorResponse("Request method '${exception.method}' is not supported for this endpoint."))
+        return response.body(ErrorResponse("O método '${exception.method}' não é suportado por este endpoint."))
     }
 
     @ExceptionHandler(ConflictException::class)
     fun handleConflictException(exception: ConflictException): ResponseEntity<ErrorResponse> {
         return ResponseEntity
             .status(409)
-            .body(ErrorResponse(exception.message ?: "The request could not be completed due to a conflict with the current state of the resource."))
+            .body(ErrorResponse(exception.message ?: "A requisição não pôde ser concluída devido a um conflito com o estado atual do recurso."))
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException::class)
     fun handleMediaTypeNotSupportedException(exception: HttpMediaTypeNotSupportedException): ResponseEntity<ErrorResponse> {
         return ResponseEntity
             .status(415)
-            .body(ErrorResponse("Content type '${exception.contentType}' is not supported for this endpoint."))
+            .body(ErrorResponse("O tipo de conteúdo '${exception.contentType}' não é suportado por este endpoint."))
     }
 
    @ExceptionHandler(InternalServerErrorException::class)
@@ -121,7 +121,7 @@ class CustomExceptionHandler {
 
         return ResponseEntity
             .status(500)
-            .body(ErrorResponse("An internal server error occurred. Please try again later."))
+            .body(ErrorResponse("Ocorreu um erro interno no servidor. Por favor, tente novamente mais tarde."))
     }
 
     @ExceptionHandler(Exception::class)
@@ -130,7 +130,7 @@ class CustomExceptionHandler {
 
         return ResponseEntity
             .status(500)
-            .body(ErrorResponse("An unexpected error occurred. Please try again later."))
+            .body(ErrorResponse("Ocorreu um erro inesperado. Por favor, tente novamente mais tarde."))
     }
 
 }
