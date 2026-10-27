@@ -1,6 +1,7 @@
 package io.correcta.identities.security.filter
 
 import io.correcta.identities.security.components.providers.activation.ActivationRequestAuthenticationProvider
+import io.correcta.identities.security.components.providers.internal.InternalRequestAuthenticationProvider
 import io.correcta.identities.security.components.providers.profile.ProfileAuthenticationProvider
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.Cookie
@@ -14,15 +15,18 @@ import org.springframework.web.servlet.HandlerExceptionResolver
 class AuthenticationFilter(
     val activationRequestAuthenticationProvider: ActivationRequestAuthenticationProvider,
     val profileAuthenticationProvider: ProfileAuthenticationProvider,
+    val internalRequestAuthenticationProvider: InternalRequestAuthenticationProvider,
     val trustedCookieRequestOrigins: List<String>,
     val handlerExceptionResolver: HandlerExceptionResolver
 ) : OncePerRequestFilter() {
 
     companion object {
         private const val ACCESS_TOKEN_COOKIE = "correcta-access-token"
+        private const val INTERNAL_TOKEN_HEADER = "X-Internal-Token"
 
         private val SAFE_METHODS = setOf("GET", "HEAD", "OPTIONS")
         private val PATHS_WITH_ACTIVATION_REQUEST = setOf("/account/create-password")
+        private val PATHS_WITH_INTERNAL_REQUEST = setOf("/api/v1/profiles")
     }
 
     data class RequestAccessToken(
@@ -36,6 +40,15 @@ class AuthenticationFilter(
         filterChain: FilterChain
     ) {
         try {
+            if (PATHS_WITH_INTERNAL_REQUEST.any { request.requestURI.startsWith(it) }) {
+                request.getHeader(INTERNAL_TOKEN_HEADER)?.takeIf { it.isNotBlank() }?.let {
+                    SecurityContextHolder.getContext().authentication = internalRequestAuthenticationProvider.getAuthentication(it)
+                }
+
+                filterChain.doFilter(request, response)
+                return
+            }
+
             val accessToken = request.readAccessToken()
             val token = accessToken.token
 

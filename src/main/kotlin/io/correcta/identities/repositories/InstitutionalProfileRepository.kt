@@ -30,5 +30,8 @@ interface InstitutionalProfileRepository :
     fun findAllByPersonIdOrderByCreatedAtAsc(personId: String): List<InstitutionalProfile>
 
     @EntityGraph(attributePaths = ["person", "accountCredential"])
+    fun findAllByIdIn(ids: Collection<String>): List<InstitutionalProfile>
+
+    @EntityGraph(attributePaths = ["person", "accountCredential"])
     override fun findAll(spec: Specification<InstitutionalProfile>?, pageable: Pageable): Page<InstitutionalProfile>
 }

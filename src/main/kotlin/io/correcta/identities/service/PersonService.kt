@@ -32,8 +32,10 @@ class PersonService(
     @Transactional(readOnly = true)
     fun getAllPersons(filter: PersonFilterRequest, pagination: PaginationRequest): PagedResponse<GetPersonResponse> {
         return personRepository
-            .findAll(PersonSpecifications.fromFilter(filter), pagination.toPageRequest(SORTABLE_FIELDS))
-            .toPagedResponse(pagination, GetPersonResponse::fromPerson)
+            .findAll(
+                PersonSpecifications.fromFilter(filter),
+                pagination.toPageRequest(SORTABLE_FIELDS)
+            ).toPagedResponse(pagination, GetPersonResponse::fromPerson)
     }
 
     @Transactional(readOnly = true)

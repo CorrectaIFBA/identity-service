@@ -68,7 +68,7 @@ interface AccountController {
 
     @Operation(
         summary = "Get authenticated account information",
-        description = "Returns the institutional profile and person information associated with the authenticated user.",
+        description = "Returns the account, traits, institutional profile and person information associated with the authenticated user. Revoked or expired sessions are rejected.",
         security = [SecurityRequirement(name = "bearerAuth")]
     )
     @ApiResponses(

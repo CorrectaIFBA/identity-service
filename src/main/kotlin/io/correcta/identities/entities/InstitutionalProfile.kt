@@ -18,15 +18,15 @@ class InstitutionalProfile(
     @JoinColumn(name = "person_id", nullable = false)
     var person: Person,
 
-    @Column(nullable = false, updatable = false)
-    @Enumerated
+    @Column(nullable = false, updatable = false, length = 20)
+    @Enumerated(EnumType.STRING)
     var type: InstitutionalProfileType,
 
     @Column(nullable = false)
     var email: String,
 
-    @Column(nullable = false)
-    @Enumerated
+    @Column(nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
     var state: InstitutionalProfileState = InstitutionalProfileState.PENDING,
 
     @Column(nullable = false)

@@ -50,7 +50,16 @@ class AccountService(
         val session = accountSessionRepository.findById(principal.sessionId).orElse(null)
             ?: throw InternalServerErrorException("Sessão não encontrada para esta solicitação. Por favor, contate a gerência de registros acadêmicos.")
 
-        return GetSelfAccountInfoResponse.fromSession(session)
+        // The local proxy and forward auth resolve identity through this endpoint, so revoked sessions must fail here.
+        if (!session.active) {
+            throw UnauthorizedException("A sessão foi encerrada. Por favor, faça login novamente.")
+        }
+
+        val traits = accountTraitRepository
+            .findAllByAccountCredentialIdOrderByCreatedAtAsc(session.accountCredential.id!!)
+            .map { it.value }
+
+        return GetSelfAccountInfoResponse.fromSession(session, traits)
     }
 
     @Transactional(readOnly = true)

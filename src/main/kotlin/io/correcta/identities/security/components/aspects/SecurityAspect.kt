@@ -2,6 +2,7 @@ package io.correcta.identities.security.components.aspects
 
 import io.correcta.identities.exceptions.UnauthorizedException
 import io.correcta.identities.security.annotations.IsAccountActivationRequest
+import io.correcta.identities.security.annotations.IsInternalRequest
 import io.correcta.identities.security.annotations.IsLoggedUser
 import io.correcta.identities.security.annotations.IsNotTraitedWith
 import io.correcta.identities.security.annotations.IsProfileType
@@ -32,6 +33,11 @@ class SecurityAspect(
 
         val isAccountActivationRequest = findSecurityAnnotation<IsAccountActivationRequest>(joinPoint)
         if (isAccountActivationRequest != null && !scopeEvaluator.isAccountActivationRequest()) {
+            throwNotLoggedIn()
+        }
+
+        val isInternalRequest = findSecurityAnnotation<IsInternalRequest>(joinPoint)
+        if (isInternalRequest != null && !scopeEvaluator.isInternalRequest()) {
             throwNotLoggedIn()
         }
 

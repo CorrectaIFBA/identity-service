@@ -7,6 +7,7 @@ import io.correcta.identities.entities.InstitutionalProfileType
 data class GetSelfAccountInfoAccountResponse(
     val login: String,
     val email: String,
+    val traits: List<String>,
 )
 
 data class GetSelfAccountInfoProfileResponse(
@@ -30,7 +31,7 @@ data class GetSelfAccountInfoResponse(
 
     companion object {
 
-        fun fromSession(session: AccountSession): GetSelfAccountInfoResponse {
+        fun fromSession(session: AccountSession, traits: List<String>): GetSelfAccountInfoResponse {
             val credential = session.accountCredential
             val profile = credential.institutionalProfile
             val person = profile.person
@@ -38,7 +39,8 @@ data class GetSelfAccountInfoResponse(
             return GetSelfAccountInfoResponse(
                 account = GetSelfAccountInfoAccountResponse(
                     login = credential.login,
-                    email = profile.email
+                    email = profile.email,
+                    traits = traits
                 ),
                 profile = GetSelfAccountInfoProfileResponse(
                     profileId = profile.id!!,

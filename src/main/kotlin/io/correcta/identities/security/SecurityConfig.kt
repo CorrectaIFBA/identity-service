@@ -2,6 +2,7 @@ package io.correcta.identities.security
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.correcta.identities.security.components.providers.activation.ActivationRequestAuthenticationProvider
+import io.correcta.identities.security.components.providers.internal.InternalRequestAuthenticationProvider
 import io.correcta.identities.security.components.providers.profile.ProfileAuthenticationProvider
 import io.correcta.identities.security.filter.AuthenticationFilter
 import org.springframework.beans.factory.annotation.Qualifier
@@ -21,6 +22,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver
 class SecurityConfig(
     private val activationRequestAuthenticationProvider: ActivationRequestAuthenticationProvider,
     private val profileAuthenticationProvider: ProfileAuthenticationProvider,
+    private val internalRequestAuthenticationProvider: InternalRequestAuthenticationProvider,
     private val objectMapper: ObjectMapper,
     @Qualifier("handlerExceptionResolver")
     private val handlerExceptionResolver: HandlerExceptionResolver
@@ -58,6 +60,7 @@ class SecurityConfig(
             AuthenticationFilter(
                 activationRequestAuthenticationProvider,
                 profileAuthenticationProvider,
+                internalRequestAuthenticationProvider,
                 allowedOriginPatterns,
                 handlerExceptionResolver
             ),

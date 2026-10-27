@@ -27,6 +27,43 @@ object InstitutionalProfileSpecifications {
         )
     }
 
+    /**
+     * Active, signed-up profiles whose owner's name, login or e-mail contains the
+     * term. Unlike the staff search it never matches document numbers, because
+     * other services use it on behalf of non-staff users.
+     */
+    fun lookupCandidates(search: String, type: InstitutionalProfileType?): Specification<InstitutionalProfile> {
+        return Specification.allOf(
+            listOfNotNull(
+                matchesNameLoginOrEmail(search),
+                type?.let(::hasType),
+                hasState(InstitutionalProfileState.ACTIVE),
+                isActive(),
+            )
+        )
+    }
+
+    /* The credential must exist and be active: a profile nobody can sign in to cannot join anything. */
+    private fun matchesNameLoginOrEmail(search: String) = Specification<InstitutionalProfile> { root, _, cb ->
+        val pattern = search.toContainsPattern()
+        val person = root.join<InstitutionalProfile, Person>("person")
+        val credential = root.join<InstitutionalProfile, AccountCredential>("accountCredential")
+
+        cb.and(
+            cb.isTrue(credential.get("active")),
+            cb.or(
+                cb.like(cb.lower(root.get("email")), pattern, LIKE_ESCAPE_CHAR),
+                cb.like(cb.lower(credential.get("login")), pattern, LIKE_ESCAPE_CHAR),
+                cb.like(cb.lower(person.get("legalName")), pattern, LIKE_ESCAPE_CHAR),
+                cb.like(cb.lower(person.get("socialName")), pattern, LIKE_ESCAPE_CHAR),
+            )
+        )
+    }
+
+    private fun isActive() = Specification<InstitutionalProfile> { root, _, cb ->
+        cb.isTrue(root.get("active"))
+    }
+
     private fun matchesSearch(search: String) = Specification<InstitutionalProfile> { root, _, cb ->
         val pattern = search.toContainsPattern()
         val person = root.join<InstitutionalProfile, Person>("person")

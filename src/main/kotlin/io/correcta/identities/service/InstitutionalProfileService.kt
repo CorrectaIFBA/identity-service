@@ -4,19 +4,25 @@ import io.correcta.identities.entities.InstitutionalProfile
 import io.correcta.identities.entities.InstitutionalProfileState
 import io.correcta.identities.entities.InstitutionalProfileType
 import io.correcta.identities.entities.Person
+import io.correcta.identities.exceptions.BadRequestException
 import io.correcta.identities.exceptions.ConflictException
 import io.correcta.identities.exceptions.NotFoundException
 import io.correcta.identities.models.request.CreateInstitutionalProfileRequest
 import io.correcta.identities.models.request.InstitutionalProfileFilterRequest
 import io.correcta.identities.models.request.PaginationRequest
+import io.correcta.identities.models.request.ProfileBatchLookupRequest
 import io.correcta.identities.models.request.UpdateInstitutionalProfileRequest
 import io.correcta.identities.models.response.GetDetailedPersonResponse
 import io.correcta.identities.models.response.GetInstitutionalProfileResponse
+import io.correcta.identities.models.response.GetProfileLookupResponse
 import io.correcta.identities.models.response.PagedResponse
+import io.correcta.identities.models.response.ProfileBatchLookupResponse
 import io.correcta.identities.repositories.InstitutionalProfileRepository
 import io.correcta.identities.repositories.specifications.InstitutionalProfileSpecifications
 import io.correcta.identities.utils.PaginationExt.toPageRequest
 import io.correcta.identities.utils.PaginationExt.toPagedResponse
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -69,6 +75,41 @@ class InstitutionalProfileService(
     @Transactional(readOnly = true)
     fun getInstitutionalProfileById(profileId: String): GetInstitutionalProfileResponse {
         return GetInstitutionalProfileResponse.fromInstitutionalProfile(requireInstitutionalProfile(profileId))
+    }
+
+    @Transactional(readOnly = true)
+    fun getProfileLookup(profileId: String): GetProfileLookupResponse {
+        return GetProfileLookupResponse.fromInstitutionalProfile(requireInstitutionalProfile(profileId))
+    }
+
+    @Transactional(readOnly = true)
+    fun lookupProfiles(request: ProfileBatchLookupRequest): ProfileBatchLookupResponse {
+        val profileIds = request.profileIds.distinct()
+        val profiles = institutionalProfileRepository.findAllByIdIn(profileIds).associateBy { it.id!! }
+
+        return ProfileBatchLookupResponse(
+            profiles = profileIds.mapNotNull { profiles[it] }.map(GetProfileLookupResponse::fromInstitutionalProfile),
+            notFoundProfileIds = profileIds.filterNot(profiles::containsKey)
+        )
+    }
+
+    @Transactional(readOnly = true)
+    fun searchProfileLookups(search: String, type: InstitutionalProfileType?, size: Int): List<GetProfileLookupResponse> {
+        val term = search.trim()
+        if (term.length < MIN_LOOKUP_SEARCH_LENGTH) {
+            throw BadRequestException("A busca deve ter pelo menos $MIN_LOOKUP_SEARCH_LENGTH caracteres.")
+        }
+        if (size !in 1..MAX_LOOKUP_SEARCH_SIZE) {
+            throw BadRequestException("O tamanho deve estar entre 1 e $MAX_LOOKUP_SEARCH_SIZE.")
+        }
+
+        return institutionalProfileRepository
+            .findAll(
+                InstitutionalProfileSpecifications.lookupCandidates(term, type),
+                PageRequest.of(0, size, Sort.by("person.legalName"))
+            )
+            .content
+            .map(GetProfileLookupResponse::fromInstitutionalProfile)
     }
 
     @Transactional
@@ -133,5 +174,7 @@ class InstitutionalProfileService(
 
     companion object {
         private val SORTABLE_FIELDS = setOf("createdAt", "updatedAt", "email", "type", "state")
+        private const val MIN_LOOKUP_SEARCH_LENGTH = 2
+        private const val MAX_LOOKUP_SEARCH_SIZE = 20
     }
 }
