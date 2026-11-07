@@ -6,6 +6,7 @@ plugins {
     kotlin("plugin.spring") version "1.9.25"
     id("org.springframework.boot") version "3.4.12"
     id("io.spring.dependency-management") version "1.1.7"
+    id("com.diffplug.spotless") version "8.10.4"
     id("org.hibernate.orm") version "6.6.33.Final"
     id("com.google.protobuf") version "0.9.4"
     kotlin("plugin.jpa") version "1.9.25"
@@ -165,4 +166,36 @@ tasks.withType<BootBuildImage> {
 }
 kapt {
     keepJavacAnnotationProcessors = true
+}
+
+val ktlintOverrides =
+    mapOf(
+        "ktlint_standard_no-wildcard-imports" to "disabled",
+        "ktlint_standard_max-line-length" to "disabled",
+        "ktlint_standard_backing-property-naming" to "disabled",
+        "ktlint_standard_property-naming" to "disabled",
+        "ktlint_standard_function-naming" to "disabled",
+        "ktlint_standard_filename" to "disabled",
+        "ktlint_standard_package-name" to "disabled",
+    )
+
+spotless {
+    kotlin {
+        target("src/**/*.kt")
+        ktlint("1.7.1").editorConfigOverride(ktlintOverrides)
+    }
+
+    kotlinGradle {
+        target("*.gradle.kts")
+        ktlint("1.7.1").editorConfigOverride(ktlintOverrides)
+    }
+}
+
+val installGitHooks by tasks.registering(Exec::class) {
+    commandLine("git", "config", "core.hooksPath", ".githooks")
+    isIgnoreExitValue = true
+}
+
+tasks.named("compileKotlin") {
+    dependsOn(installGitHooks)
 }
