@@ -4,11 +4,13 @@ import io.correcta.identities.entities.AccountSession
 import io.correcta.identities.entities.InstitutionalProfileState
 import io.correcta.identities.entities.InstitutionalProfileType
 
+/** Account part of [GetSelfAccountInfoResponse]. */
 data class GetSelfAccountInfoAccountResponse(
   val login: String,
   val email: String,
 )
 
+/** Profile part of [GetSelfAccountInfoResponse]. */
 data class GetSelfAccountInfoProfileResponse(
   val profileId: String,
 
@@ -16,12 +18,14 @@ data class GetSelfAccountInfoProfileResponse(
   val state: InstitutionalProfileState,
 )
 
+/** Person part of [GetSelfAccountInfoResponse]. */
 data class GetSelfAccountInfoPersonResponse(
   val personId: String,
   val firstName: String,
   val displayName: String,
 )
 
+/** Account, profile and person data of the authenticated session. */
 data class GetSelfAccountInfoResponse(
   val account: GetSelfAccountInfoAccountResponse,
   val profile: GetSelfAccountInfoProfileResponse,

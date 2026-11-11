@@ -7,6 +7,11 @@ import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 
+/**
+ * One-time activation of an account credential. The owner uses it to set the first password.
+ *
+ * Only the SHA-256 hash of the activation token is stored.
+ */
 @Entity
 @Table(name = "account_activations")
 @EntityListeners(AuditingEntityListener::class)
@@ -35,12 +40,10 @@ class AccountActivation(
   @Column
   var consumedAt: Instant? = null,
 ) {
+  /** True when the activation is not consumed and not expired. */
   @get:Transient
   val active get() = isActiveAt(Instant.now())
 
+  /** Returns true when the activation is not consumed and is still valid at [instant]. */
   fun isActiveAt(instant: Instant): Boolean = consumedAt == null && expiresAt?.isAfter(instant) == true
-
-  fun consume() {
-    consumedAt = Instant.now()
-  }
 }

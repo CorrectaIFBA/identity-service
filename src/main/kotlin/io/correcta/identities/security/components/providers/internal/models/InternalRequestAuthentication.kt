@@ -2,6 +2,7 @@ package io.correcta.identities.security.components.providers.internal.models
 
 import org.springframework.security.authentication.AbstractAuthenticationToken
 
+/** Authenticated token of a service-to-service request. */
 class InternalRequestAuthentication : AbstractAuthenticationToken(emptyList()) {
 
   init {

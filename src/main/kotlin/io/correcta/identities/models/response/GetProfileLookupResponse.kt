@@ -4,6 +4,7 @@ import io.correcta.identities.entities.InstitutionalProfile
 import io.correcta.identities.entities.InstitutionalProfileState
 import io.correcta.identities.entities.InstitutionalProfileType
 
+/** Identity and eligibility data of an institutional profile, for other services. */
 data class GetProfileLookupResponse(
   val profileId: String,
   val personId: String,

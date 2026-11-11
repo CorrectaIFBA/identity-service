@@ -6,11 +6,13 @@ import io.correcta.identities.security.components.providers.internal.models.Inte
 import org.springframework.stereotype.Component
 import java.security.MessageDigest
 
+/** Authenticates service-to-service requests. */
 @Component
 class InternalRequestAuthenticationProvider(
   val internalRequestProperties: InternalRequestProperties,
 ) {
 
+  /** Compares [token] with the configured internal token in constant time. Throws [UnauthorizedException] when they differ or when no token is configured. */
   fun getAuthentication(token: String): InternalRequestAuthentication {
     val expected = internalRequestProperties.token
 

@@ -4,6 +4,7 @@ import io.correcta.identities.utils.validation.annotations.CPF
 import jakarta.validation.ConstraintValidator
 import jakarta.validation.ConstraintValidatorContext
 
+/** Validator of [CPF]: checks the length and both check digits. */
 class CPFValidationHandler : ConstraintValidator<CPF, String> {
 
   override fun isValid(

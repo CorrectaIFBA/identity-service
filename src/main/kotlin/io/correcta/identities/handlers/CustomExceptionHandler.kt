@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.resource.NoResourceFoundException
 
+/** Maps exceptions to HTTP responses with an [ErrorResponse] or [ValidationErrorResponse] body. */
 @RestControllerAdvice
 class CustomExceptionHandler {
 

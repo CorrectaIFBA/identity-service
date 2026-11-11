@@ -7,11 +7,13 @@ import io.correcta.identities.security.components.providers.activation.models.Ac
 import io.correcta.identities.service.AccountService
 import org.springframework.stereotype.Component
 
+/** Authenticates requests that carry an account activation token. */
 @Component
 class ActivationRequestAuthenticationProvider(
   val accountService: AccountService,
 ) {
 
+  /** Returns the authentication of the activation [token]. Throws [UnauthorizedException] when the activation is unknown, consumed or expired. */
   fun getAuthentication(token: String): ActivationRequestAuthentication {
     val activation = accountService.getActivationByToken(token)
 

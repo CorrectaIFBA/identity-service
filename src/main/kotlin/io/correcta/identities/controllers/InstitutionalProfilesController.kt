@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 
+/** HTTP API for institutional profile management. Restricted to STAFF profiles. */
 @RequestMapping("/institutional-profiles")
 @Tag(name = "Institutional Profiles", description = "Institutional profiles management operations endpoint.")
 interface InstitutionalProfilesController {

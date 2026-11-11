@@ -1,5 +1,6 @@
 package io.correcta.identities.models.response
 
+/** Page of a listing, with the sorting that produced it. */
 data class PagedResponse<T>(
   val content: List<T>,
   val page: Int,

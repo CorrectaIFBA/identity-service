@@ -1,5 +1,6 @@
 package io.correcta.identities.models.request
 
+/** Client data captured at login: user agent, IP address, parsed device and geolocation. */
 data class ClientInfo(
   val userAgent: String,
   val ipAddress: String,

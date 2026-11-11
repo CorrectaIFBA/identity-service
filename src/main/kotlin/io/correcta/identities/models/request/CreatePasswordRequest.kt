@@ -4,6 +4,7 @@ import io.correcta.identities.utils.validation.annotations.FieldsMatch
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
+/** Request to set the first password of an account. [password] and [confirmPassword] must match. */
 @FieldsMatch(
   first = "password",
   second = "confirmPassword",

@@ -7,6 +7,7 @@ import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 
+/** Login session of an account credential, with the client device and origin data captured at login. */
 @Entity
 @Table(
   name = "account_sessions",
@@ -18,7 +19,6 @@ import java.time.Instant
 )
 @EntityListeners(AuditingEntityListener::class)
 class AccountSession(
-
   @Id
   @UuidGenerator(style = UuidGenerator.Style.TIME)
   var id: String? = null,
@@ -27,9 +27,6 @@ class AccountSession(
   @JoinColumn(name = "account_credential_id", nullable = false)
   var accountCredential: AccountCredential,
 
-  /**
-   * Informações do dispositivo / cliente
-   */
   @Column(name = "user_agent", length = 1024)
   var userAgent: String? = null,
 
@@ -45,9 +42,6 @@ class AccountSession(
   @Column(name = "browser", length = 100)
   var browser: String? = null,
 
-  /**
-   * Origem da sessão
-   */
   @Column(name = "ip_address", length = 45)
   var ipAddress: String? = null,
 
@@ -60,9 +54,6 @@ class AccountSession(
   @Column(name = "city", length = 100)
   var city: String? = null,
 
-  /**
-   * Controle da sessão
-   */
   @Column(name = "last_seen_at")
   var lastSeenAt: Instant? = null,
 
@@ -75,9 +66,6 @@ class AccountSession(
   @Column(name = "revocation_reason", length = 255)
   var revocationReason: String? = null,
 
-  /**
-   * Auditoria
-   */
   @CreatedDate
   @Column(name = "created_at", nullable = false, updatable = false)
   var createdAt: Instant? = null,
@@ -86,16 +74,14 @@ class AccountSession(
   @Column(name = "updated_at", nullable = false)
   var updatedAt: Instant? = null,
 ) {
+  /** True when the session is not revoked and not expired. */
   @get:Transient
   val active: Boolean
     get() = revokedAt == null && expiresAt.isAfter(Instant.now())
 
+  /** Revokes the session now and stores the [reason]. */
   fun revoke(reason: String? = null) {
     revokedAt = Instant.now()
     revocationReason = reason
-  }
-
-  fun touch() {
-    lastSeenAt = Instant.now()
   }
 }

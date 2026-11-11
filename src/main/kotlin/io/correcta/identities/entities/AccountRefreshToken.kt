@@ -7,6 +7,11 @@ import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 
+/**
+ * Refresh token of an [AccountSession]. Only the SHA-256 hash of the token is stored.
+ *
+ * A refresh token is single use: on rotation it gets [usedAt] and points to its replacement in [replacedBy].
+ */
 @Entity
 @Table(name = "account_refresh_tokens")
 @EntityListeners(AuditingEntityListener::class)
@@ -38,7 +43,8 @@ class AccountRefreshToken(
   @JoinColumn(name = "replaced_by_id")
   var replacedBy: AccountRefreshToken? = null,
 ) {
+  /** True when the token is not used, not revoked and not expired. */
   @get:Transient
   val active: Boolean
-    get() = usedAt == null && revokedAt == null && (expiresAt == null || expiresAt?.isAfter(Instant.now()) == true)
+    get() = usedAt == null && revokedAt == null && expiresAt.let { it == null || it.isAfter(Instant.now()) }
 }

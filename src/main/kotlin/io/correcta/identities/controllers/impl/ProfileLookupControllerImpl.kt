@@ -8,6 +8,7 @@ import io.correcta.identities.models.response.ProfileBatchLookupResponse
 import io.correcta.identities.service.InstitutionalProfileService
 import org.springframework.web.bind.annotation.RestController
 
+/** Implementation of [ProfileLookupController] that delegates to [InstitutionalProfileService]. */
 @RestController
 class ProfileLookupControllerImpl(
   val institutionalProfileService: InstitutionalProfileService,

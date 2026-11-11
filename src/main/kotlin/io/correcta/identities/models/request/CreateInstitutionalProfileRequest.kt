@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 
+/** Request to create an institutional profile, its owner person (when new) and its credential. */
 data class CreateInstitutionalProfileRequest(
   @field:NotNull(message = "O tipo de perfil institucional não pode ser nulo")
   var type: InstitutionalProfileType,

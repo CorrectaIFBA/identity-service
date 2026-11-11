@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
+/** Login, logout and token refresh. */
 @Service
 class AuthenticationService(
   val accountCredentialRepository: AccountCredentialRepository,
@@ -22,12 +23,17 @@ class AuthenticationService(
   val tokenService: TokenService,
 ) {
 
+  /**
+   * Validates the login and password, opens a session and issues its tokens.
+   *
+   * Throws [BadRequestException] for invalid credentials and [ForbiddenException] when the profile is not ACTIVE.
+   */
   @Transactional
   fun doUserLogin(request: LoginUserRequest, clientInfo: ClientInfo): TokenResponse {
     val existingCredential = accountCredentialRepository.findByLogin(request.login)
 
     if (existingCredential?.password == null) {
-      // Dummy check to prevent timing attacks
+      // Compare against a dummy hash so unknown logins take as long as wrong passwords.
       passwordEncoder.matches(request.password, "$2a$10\$xql3MAAnti1TRq2ZP2VmQuARfFIFPdRYv7LWxFFbuaAELrWCOIQOG")
 
       throw BadRequestException("Login ou senha inválidos.")
@@ -41,7 +47,6 @@ class AuthenticationService(
       throw ForbiddenException("O perfil institucional associado a este login não está ativo.")
     }
 
-    // create session, then generate access and refresh tokens
     val session = sessionService.createNewSession(existingCredential, clientInfo)
 
     return tokenService.issueTokens(
@@ -50,6 +55,7 @@ class AuthenticationService(
     )
   }
 
+  /** Validates [rawRefreshToken] and its session, then rotates the tokens. Throws [io.correcta.identities.exceptions.UnauthorizedException] when any check fails. */
   @Transactional
   fun doRefreshToken(rawRefreshToken: String): TokenResponse {
     val refreshToken = tokenService.findRefreshTokenForUpdate(
@@ -68,6 +74,7 @@ class AuthenticationService(
     )
   }
 
+  /** Revokes the session [sessionId] and all of its refresh tokens. */
   @Transactional
   fun doLogOut(sessionId: String) {
     sessionService.revokeSession(

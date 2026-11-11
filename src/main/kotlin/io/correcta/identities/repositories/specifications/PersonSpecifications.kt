@@ -8,8 +8,14 @@ import io.correcta.identities.utils.DocumentNumberExt.normalizeDocumentNumber
 import jakarta.persistence.criteria.Predicate
 import org.springframework.data.jpa.domain.Specification
 
+/** JPA specifications to query persons. */
 object PersonSpecifications {
 
+  /**
+   * Builds the listing specification from [filter].
+   *
+   * The search matches legal name, social name and the digits of the document number.
+   */
   fun fromFilter(filter: PersonFilterRequest): Specification<Person> = Specification.allOf(
     listOfNotNull(
       filter.search?.takeIf { it.isNotBlank() }?.let(::matchesSearch),

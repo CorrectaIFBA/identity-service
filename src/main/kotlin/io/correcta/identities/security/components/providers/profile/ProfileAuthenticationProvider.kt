@@ -8,6 +8,7 @@ import io.jsonwebtoken.security.Keys
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.stereotype.Component
 
+/** Authenticates requests that carry a JWT access token. */
 @Component
 class ProfileAuthenticationProvider(
   jsonWebTokenProperties: JsonWebTokenProperties,
@@ -16,6 +17,7 @@ class ProfileAuthenticationProvider(
   private val signingKey =
     Keys.hmacShaKeyFor(jsonWebTokenProperties.secret.toByteArray())
 
+  /** Verifies the signature and expiry of [token] and returns its [ProfilePrincipal]. Throws a `JwtException` when the token is invalid. */
   fun getAuthentication(token: String): UsernamePasswordAuthenticationToken {
     val claims = Jwts.parserBuilder()
       .setSigningKey(signingKey)

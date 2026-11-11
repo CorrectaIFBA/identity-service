@@ -7,8 +7,10 @@ import io.swagger.v3.oas.models.security.SecurityScheme
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
+/** OpenAPI configuration. */
 @Configuration
 class SwaggerConfig {
+  /** OpenAPI definition with the `bearerAuth` JWT security scheme applied to all operations. */
   @Bean
   fun customOpenAPI(): OpenAPI = OpenAPI()
     .addSecurityItem(SecurityRequirement().addList("bearerAuth"))

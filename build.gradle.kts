@@ -1,4 +1,3 @@
-import com.google.protobuf.gradle.id
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 
 plugins {
@@ -8,10 +7,9 @@ plugins {
   id("io.spring.dependency-management") version "1.1.7"
   id("com.diffplug.spotless") version "8.10.4"
   id("org.hibernate.orm") version "6.6.33.Final"
-  id("com.google.protobuf") version "0.9.4"
   kotlin("plugin.jpa") version "1.9.25"
   kotlin("kapt") version "1.9.25"
-  kotlin("plugin.lombok") version "1.9.25"
+  jacoco
 }
 
 group = "io.correcta"
@@ -35,7 +33,6 @@ repositories {
 }
 
 extra["springCloudVersion"] = "2024.0.0"
-extra["springGrpcVersion"] = "0.12.0"
 
 dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
@@ -49,33 +46,23 @@ dependencies {
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
   implementation("org.jetbrains.kotlin:kotlin-reflect")
 
-  // gRPC core
-  implementation("io.grpc:grpc-netty:1.75.0")
-  implementation("io.grpc:grpc-protobuf:1.65.0")
-  implementation("io.grpc:grpc-stub:1.65.0")
-
-  // Needed for Java 17+ (Spring Boot 3) — gRPC uses javax
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
-  // JsonWebToken
   implementation("io.jsonwebtoken:jjwt-api:0.11.5")
   runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
   runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
 
-  // Yauaa
   implementation("nl.basjes.parse.useragent:yauaa:8.2.0")
 
-  compileOnly("org.projectlombok:lombok")
   developmentOnly("org.springframework.boot:spring-boot-devtools")
 
   runtimeOnly("org.postgresql:postgresql")
 
   kapt("org.springframework.boot:spring-boot-configuration-processor")
-  annotationProcessor("org.projectlombok:lombok")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-  testImplementation("org.springframework.grpc:spring-grpc-test")
   testImplementation("org.springframework.security:spring-security-test")
+  testImplementation("io.mockk:mockk:1.13.13")
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   testRuntimeOnly("com.h2database:h2")
   implementation(kotlin("stdlib"))
@@ -83,10 +70,6 @@ dependencies {
 }
 
 dependencyManagement {
-  imports {
-    mavenBom("org.springframework.grpc:spring-grpc-dependencies:${property("springGrpcVersion")}")
-  }
-
   imports {
     mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
   }
@@ -104,33 +87,6 @@ hibernate {
   }
 }
 
-protobuf {
-  protoc {
-    artifact = "com.google.protobuf:protoc:3.25.3"
-  }
-  plugins {
-    id("grpc") {
-      artifact = "io.grpc:protoc-gen-grpc-java:1.65.0"
-    }
-  }
-  generateProtoTasks {
-    all().forEach { task ->
-      task.plugins {
-        id("grpc") {
-          option("@generated=omit")
-        }
-      }
-    }
-  }
-}
-
-sourceSets {
-  named("main") {
-    java.srcDir("build/generated/source/proto/main/java")
-    java.srcDir("build/generated/source/proto/main/grpc")
-  }
-}
-
 allOpen {
   annotation("jakarta.persistence.Entity")
   annotation("jakarta.persistence.MappedSuperclass")
@@ -139,6 +95,39 @@ allOpen {
 
 tasks.withType<Test> {
   useJUnitPlatform()
+  finalizedBy(tasks.jacocoTestReport)
+}
+
+jacoco {
+  toolVersion = "0.8.13"
+}
+
+tasks.jacocoTestReport {
+  dependsOn(tasks.test)
+  reports {
+    xml.required = true
+    html.required = true
+  }
+}
+
+tasks.jacocoTestCoverageVerification {
+  dependsOn(tasks.test)
+  violationRules {
+    rule {
+      limit {
+        counter = "LINE"
+        minimum = "1.0".toBigDecimal()
+      }
+      limit {
+        counter = "BRANCH"
+        minimum = "1.0".toBigDecimal()
+      }
+    }
+  }
+}
+
+tasks.check {
+  dependsOn(tasks.jacocoTestCoverageVerification)
 }
 
 tasks.withType<BootBuildImage> {
@@ -153,12 +142,11 @@ tasks.withType<BootBuildImage> {
     environment.put("BP_LOG_LEVEL", "DEBUG")
   }
 
-  // Only needed for GraalVM native builds
+  // GraalVM native image builds only.
   environment.put(
     "BP_NATIVE_IMAGE_BUILD_ARGUMENTS",
     "--enable-all-security-services --initialize-at-run-time=org.slf4j,ch.qos.logback,org.apache.logging --report-unsupported-elements-at-runtime",
   )
-  environment.put("BP_NATIVE_IMAGE_CONFIG_DIR", "src/main/resources/META-INF/native-image")
 
   if (System.getProperty("os.arch") == "aarch64") {
     imagePlatform.set("linux/arm64")

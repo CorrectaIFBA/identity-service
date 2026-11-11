@@ -13,8 +13,14 @@ import jakarta.persistence.criteria.JoinType
 import jakarta.persistence.criteria.Predicate
 import org.springframework.data.jpa.domain.Specification
 
+/** JPA specifications to query institutional profiles. */
 object InstitutionalProfileSpecifications {
 
+  /**
+   * Builds the staff listing specification from [filter].
+   *
+   * The search matches e-mail, login, legal name, social name and the digits of the document number.
+   */
   fun fromFilter(filter: InstitutionalProfileFilterRequest): Specification<InstitutionalProfile> = Specification.allOf(
     listOfNotNull(
       filter.search?.takeIf { it.isNotBlank() }?.let(::matchesSearch),
@@ -26,9 +32,9 @@ object InstitutionalProfileSpecifications {
   )
 
   /**
-   * Active, signed-up profiles whose owner's name, login or e-mail contains the
-   * term. Unlike the staff search it never matches document numbers, because
-   * other services use it on behalf of non-staff users.
+   * Active, signed-up profiles whose owner's name, login or e-mail contains [search], optionally of [type].
+   *
+   * Unlike [fromFilter], it never matches document numbers, because other services use it on behalf of non-staff users.
    */
   fun lookupCandidates(search: String, type: InstitutionalProfileType?): Specification<InstitutionalProfile> = Specification.allOf(
     listOfNotNull(
@@ -39,7 +45,7 @@ object InstitutionalProfileSpecifications {
     ),
   )
 
-  /* The credential must exist and be active: a profile nobody can sign in to cannot join anything. */
+  /** The credential must exist and be active: a profile that nobody can log in to is not a candidate. */
   private fun matchesNameLoginOrEmail(search: String) = Specification<InstitutionalProfile> { root, _, cb ->
     val pattern = search.toContainsPattern()
     val person = root.join<InstitutionalProfile, Person>("person")

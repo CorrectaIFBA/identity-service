@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 
+/** HTTP API for the sessions of the authenticated account. */
 @RequestMapping("/account/sessions")
 @Tag(
   name = "Account Sessions",

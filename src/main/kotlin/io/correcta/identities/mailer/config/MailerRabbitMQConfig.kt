@@ -5,8 +5,10 @@ import org.springframework.amqp.support.converter.MessageConverter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
+/** RabbitMQ configuration of the mailer integration. */
 @Configuration
 class MailerRabbitMQConfig {
+  /** Serializes AMQP messages as JSON. */
   @Bean
   fun rabbitMessageConverter(): MessageConverter = Jackson2JsonMessageConverter()
 }

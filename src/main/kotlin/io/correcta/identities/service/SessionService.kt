@@ -15,12 +15,14 @@ import org.springframework.stereotype.Service
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
+/** Account session lifecycle. */
 @Service
 class SessionService(
   private val accountSessionRepository: AccountSessionRepository,
   private val accountRefreshTokenRepository: AccountRefreshTokenRepository,
 ) {
 
+  /** Opens a 90-day session for [credential] with the data of [clientInfo]. */
   fun createNewSession(
     credential: AccountCredential,
     clientInfo: ClientInfo,
@@ -45,6 +47,7 @@ class SessionService(
     )
   }
 
+  /** Returns the session [sessionId]. Throws [UnauthorizedException] when it is missing, revoked or expired. */
   fun requireActiveSession(sessionId: String): AccountSession {
     val session = accountSessionRepository
       .findById(sessionId)
@@ -65,12 +68,14 @@ class SessionService(
     return session
   }
 
+  /** Returns the active sessions of the authenticated profile. */
   fun getActiveSessionsForAuthenticatedAccount(): List<AccountSession> {
     val authenticatedAccount = getAuthenticatedProfile()
 
     return accountSessionRepository.findActiveSessionsByProfileId(authenticatedAccount.profileId)
   }
 
+  /** Revokes all active sessions of the authenticated profile. */
   fun revokeAllSessionsForAuthenticatedAccount() {
     val authenticatedAccount = getAuthenticatedProfile()
 
@@ -82,6 +87,11 @@ class SessionService(
     }
   }
 
+  /**
+   * Revokes the session [sessionId]. Only its owner or a STAFF profile can revoke it.
+   *
+   * Throws [UnauthorizedException] when the session does not exist or belongs to another profile.
+   */
   fun revokeSessionById(sessionId: String) {
     val authenticatedAccount = getAuthenticatedProfile()
 
@@ -105,6 +115,7 @@ class SessionService(
     accountSessionRepository.save(session)
   }
 
+  /** Revokes the active sessions of [profileId] and their refresh tokens. */
   fun revokeAllSessionsForProfile(profileId: String, reason: String) {
     val now = Instant.now()
 
@@ -119,6 +130,7 @@ class SessionService(
     }
   }
 
+  /** Revokes the session [sessionId]. Throws [UnauthorizedException] when it does not exist. */
   fun revokeSession(
     sessionId: String,
     reason: String? = null,

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 
+/** HTTP API for the authenticated account. */
 @RequestMapping("/account")
 @Tag(name = "Accounts", description = "Account management operations endpoint.")
 interface AccountController {

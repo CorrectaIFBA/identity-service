@@ -5,6 +5,7 @@ import io.correcta.identities.models.response.AccountSessionsResponse
 import io.correcta.identities.service.SessionService
 import org.springframework.web.bind.annotation.RestController
 
+/** Implementation of [AccountSessionsController] that delegates to [SessionService]. */
 @RestController
 class AccountSessionsControllerImpl(
   val sessionService: SessionService,

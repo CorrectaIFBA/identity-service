@@ -26,6 +26,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
+/** Institutional profile management and lookups. */
 @Service
 class InstitutionalProfileService(
   val institutionalProfileRepository: InstitutionalProfileRepository,
@@ -34,6 +35,12 @@ class InstitutionalProfileService(
   val personService: PersonService,
 ) {
 
+  /**
+   * Creates a PENDING profile and its credential, and sends the activation e-mail.
+   *
+   * The person is resolved by CPF and created when missing. Throws [ConflictException] when the login is in use, the
+   * person is inactive or the person already has a non-inactive profile of the same type.
+   */
   @Transactional
   fun createInstitutionalProfile(request: CreateInstitutionalProfileRequest): InstitutionalProfile {
     validateCredential(request)
@@ -55,6 +62,7 @@ class InstitutionalProfileService(
     return institutionalProfile
   }
 
+  /** Creates a profile with [createInstitutionalProfile] and returns the detailed owner person. */
   @Transactional
   fun createInstitutionalProfileForPerson(request: CreateInstitutionalProfileRequest): GetDetailedPersonResponse {
     val institutionalProfile = createInstitutionalProfile(request)
@@ -62,6 +70,7 @@ class InstitutionalProfileService(
     return personService.getDetailedPerson(institutionalProfile.person)
   }
 
+  /** Returns a page of profiles that match [filter]. Throws [BadRequestException] for a sort field that is not allowed. */
   @Transactional(readOnly = true)
   fun getAllInstitutionalProfiles(
     filter: InstitutionalProfileFilterRequest,
@@ -70,12 +79,15 @@ class InstitutionalProfileService(
     .findAll(InstitutionalProfileSpecifications.fromFilter(filter), pagination.toPageRequest(SORTABLE_FIELDS))
     .toPagedResponse(pagination, GetInstitutionalProfileResponse::fromInstitutionalProfile)
 
+  /** Returns the profile [profileId]. Throws [NotFoundException] when it does not exist. */
   @Transactional(readOnly = true)
   fun getInstitutionalProfileById(profileId: String): GetInstitutionalProfileResponse = GetInstitutionalProfileResponse.fromInstitutionalProfile(requireInstitutionalProfile(profileId))
 
+  /** Returns the lookup data of the profile [profileId]. Throws [NotFoundException] when it does not exist. */
   @Transactional(readOnly = true)
   fun getProfileLookup(profileId: String): GetProfileLookupResponse = GetProfileLookupResponse.fromInstitutionalProfile(requireInstitutionalProfile(profileId))
 
+  /** Returns the lookup data of the requested profiles, in request order, and the unknown IDs. */
   @Transactional(readOnly = true)
   fun lookupProfiles(request: ProfileBatchLookupRequest): ProfileBatchLookupResponse {
     val profileIds = request.profileIds.distinct()
@@ -87,6 +99,11 @@ class InstitutionalProfileService(
     )
   }
 
+  /**
+   * Searches up to [size] candidates with [InstitutionalProfileSpecifications.lookupCandidates], sorted by legal name.
+   *
+   * Throws [BadRequestException] when the trimmed [search] has less than 2 characters or [size] is not in 1..20.
+   */
   @Transactional(readOnly = true)
   fun searchProfileLookups(search: String, type: InstitutionalProfileType?, size: Int): List<GetProfileLookupResponse> {
     val term = search.trim()
@@ -106,6 +123,7 @@ class InstitutionalProfileService(
       .map(GetProfileLookupResponse::fromInstitutionalProfile)
   }
 
+  /** Updates the e-mail of the profile [profileId]. */
   @Transactional
   fun updateInstitutionalProfile(
     profileId: String,
@@ -120,11 +138,13 @@ class InstitutionalProfileService(
     )
   }
 
+  /** Sends a new activation e-mail for the profile [profileId]. */
   @Transactional
   fun resendAccountActivation(profileId: String) {
     accountService.resendAccountActivation(requireInstitutionalProfile(profileId))
   }
 
+  /** Deactivates the profile [profileId]. See [AccountService.revokeProfileAccess]. */
   @Transactional
   fun deactivateInstitutionalProfile(profileId: String): GetInstitutionalProfileResponse {
     val institutionalProfile = requireInstitutionalProfile(profileId)
@@ -134,6 +154,7 @@ class InstitutionalProfileService(
     return GetInstitutionalProfileResponse.fromInstitutionalProfile(institutionalProfile)
   }
 
+  /** Reactivates the profile [profileId] when its person is active and has no other non-inactive profile of the same type. */
   @Transactional
   fun reactivateInstitutionalProfile(profileId: String): GetInstitutionalProfileResponse {
     val institutionalProfile = requireInstitutionalProfile(profileId)
@@ -147,6 +168,7 @@ class InstitutionalProfileService(
     return GetInstitutionalProfileResponse.fromInstitutionalProfile(institutionalProfile)
   }
 
+  /** Throws [ConflictException] when the requested login is already in use. */
   fun validateCredential(request: CreateInstitutionalProfileRequest) {
     accountService.checkIfCredentialExists(request.credential)
   }

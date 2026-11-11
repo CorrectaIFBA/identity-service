@@ -4,6 +4,7 @@ import io.correcta.identities.entities.InstitutionalProfile
 import io.correcta.identities.entities.Person
 import java.time.Instant
 
+/** Full view of a [Person], with all of its institutional profiles. */
 data class GetDetailedPersonResponse(
   val id: String,
   val documentNumber: String,

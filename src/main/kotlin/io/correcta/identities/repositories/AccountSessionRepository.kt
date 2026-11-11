@@ -6,9 +6,11 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 
+/** Persistence of [AccountSession]. */
 @Repository
 interface AccountSessionRepository : JpaRepository<AccountSession, String> {
 
+  /** Returns the non-revoked, non-expired sessions of an institutional profile. */
   @Query(
     "SELECT s FROM AccountSession s " +
       "WHERE s.accountCredential.institutionalProfile.id = :profileId " +

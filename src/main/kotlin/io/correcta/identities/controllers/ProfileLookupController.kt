@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 
+/** Internal HTTP API that other services use to look up profiles. Requires the `X-Internal-Token` header. */
 @RequestMapping("/api/v1/profiles")
 @Tag(name = "Profile Lookup", description = "Internal service-to-service profile lookups. Requires the X-Internal-Token header.")
 interface ProfileLookupController {

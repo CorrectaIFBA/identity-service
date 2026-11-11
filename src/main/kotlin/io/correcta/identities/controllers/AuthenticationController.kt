@@ -19,22 +19,24 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 
+/** HTTP API for login, logout and token refresh. */
 @RequestMapping("/auth")
 @Tag(name = "Authentication", description = "Authentication operations endpoint.")
 interface AuthenticationController {
 
   @Operation(
-    summary = "Realiza o login do usuário",
-    description = "Autentica o usuário e retorna um token de acesso.",
+    summary = "Log in",
+    description = "Authenticates the user with login and password, opens a new session and returns an access token and a refresh token.",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Login realizado com sucesso",
+        description = "Login successful.",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = TokenResponse::class))],
       ),
-      ApiResponse(responseCode = "401", description = "Credenciais inválidas"),
+      ApiResponse(responseCode = "400", description = "Invalid login or password."),
+      ApiResponse(responseCode = "403", description = "The institutional profile is not active."),
     ],
   )
   @PostMapping("/login")
@@ -44,16 +46,16 @@ interface AuthenticationController {
   ): ResponseEntity<TokenResponse>
 
   @Operation(
-    summary = "Realiza o logout do usuário",
-    description = "Encerra a sessão do usuário, invalidando o token de acesso e o token de atualização.",
+    summary = "Log out",
+    description = "Revokes the current session and all of its refresh tokens.",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "204",
-        description = "Logout realizado com sucesso",
+        description = "Logout successful.",
       ),
-      ApiResponse(responseCode = "401", description = "Token de acesso inválido ou expirado"),
+      ApiResponse(responseCode = "401", description = "Invalid or expired access token."),
     ],
   )
   @PostMapping("/logout")
@@ -61,17 +63,17 @@ interface AuthenticationController {
   fun logoutUser(@AuthenticationPrincipal principal: ProfilePrincipal): ResponseEntity<Void>
 
   @Operation(
-    summary = "Atualiza o token de acesso",
-    description = "Recebe um token de atualização válido e retorna um novo token de acesso.",
+    summary = "Refresh access token",
+    description = "Consumes a valid refresh token and returns a new access token and a new refresh token for the same session.",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Token de acesso atualizado com sucesso",
+        description = "Tokens successfully refreshed.",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = TokenResponse::class))],
       ),
-      ApiResponse(responseCode = "401", description = "Token de atualização inválido ou expirado"),
+      ApiResponse(responseCode = "401", description = "Invalid, used, revoked or expired refresh token."),
     ],
   )
   @PostMapping("/refresh-token")

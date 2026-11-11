@@ -2,6 +2,7 @@ package io.correcta.identities.models.response
 
 import io.correcta.identities.entities.AccountSession
 
+/** List of account sessions. */
 data class AccountSessionsResponse(
   val sessions: List<AccountSessionResponse>,
 ) {

@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 
+/** HTTP API for person management. Restricted to STAFF profiles. */
 @RequestMapping("/persons")
 @Tag(name = "Persons", description = "System persons management operations endpoint.")
 interface PersonsController {

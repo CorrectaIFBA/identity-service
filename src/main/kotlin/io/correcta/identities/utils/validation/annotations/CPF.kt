@@ -5,6 +5,7 @@ import jakarta.validation.Constraint
 import jakarta.validation.Payload
 import kotlin.reflect.KClass
 
+/** Validates that the value is a valid CPF. Punctuation is ignored. Null or blank values are valid. */
 @MustBeDocumented
 @Constraint(validatedBy = [CPFValidationHandler::class])
 @Target(

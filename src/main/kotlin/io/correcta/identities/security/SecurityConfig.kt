@@ -17,6 +17,12 @@ import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.web.servlet.HandlerExceptionResolver
 
+/**
+ * Spring Security configuration.
+ *
+ * All requests pass the security chain. [AuthenticationFilter] populates the security context, and
+ * [io.correcta.identities.security.components.aspects.SecurityAspect] enforces the controller annotations.
+ */
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
@@ -33,6 +39,7 @@ class SecurityConfig(
     "http://localhost:8080",
   )
 
+  /** CORS for the trusted front-end origins, with credentials. */
   @Bean
   fun corsConfigurationSource(): CorsConfigurationSource {
     val configuration = CorsConfiguration()
@@ -46,6 +53,7 @@ class SecurityConfig(
     return source
   }
 
+  /** Stateless filter chain without basic auth, form login, anonymous authentication or CSRF. */
   @Bean
   fun filterChain(http: HttpSecurity): SecurityFilterChain {
     http.cors { }

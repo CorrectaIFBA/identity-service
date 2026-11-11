@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.Pattern
 
+/** Pagination and sorting parameters of a listing. */
 data class PaginationRequest(
   @field:Schema(description = "Zero-based page index.", defaultValue = "0")
   @field:Min(value = 0, message = "A página deve ser maior ou igual a 0")

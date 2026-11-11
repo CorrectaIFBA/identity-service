@@ -2,15 +2,10 @@ package io.correcta.identities.utils
 
 import jakarta.servlet.http.HttpServletRequest
 
+/** HTTP request helpers. */
 object RequestExt {
-  fun HttpServletRequest.getClientIpAddress(): String? {
-    val xForwardedForHeader = getHeader("X-Forwarded-For")
-
-    if (xForwardedForHeader != null && !xForwardedForHeader.isEmpty()) {
-      return xForwardedForHeader.split(",".toRegex()).dropLastWhile { it.isEmpty() }
-        .toTypedArray()[0].trim { it <= ' ' }
-    }
-
-    return remoteAddr
-  }
+  /** Returns the first address of `X-Forwarded-For`, or the remote address when the header is missing or its first entry is empty. */
+  fun HttpServletRequest.getClientIpAddress(): String? = getHeader("X-Forwarded-For")
+    ?.let { it.substringBefore(",").trim().ifEmpty { null } }
+    ?: remoteAddr
 }

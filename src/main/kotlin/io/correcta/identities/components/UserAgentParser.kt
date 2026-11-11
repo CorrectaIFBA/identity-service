@@ -5,6 +5,7 @@ import nl.basjes.parse.useragent.UserAgent
 import nl.basjes.parse.useragent.UserAgentAnalyzer
 import org.springframework.stereotype.Component
 
+/** Extracts device, operating system and browser information from `User-Agent` headers with Yauaa. */
 @Component
 class UserAgentParser {
 
@@ -15,6 +16,11 @@ class UserAgentParser {
       .withCache(10_000)
       .build()
 
+  /**
+   * Parses [userAgent] into a [DeviceInfo].
+   *
+   * Returns an empty [DeviceInfo] when [userAgent] is null or blank. Unknown values are returned as `null`.
+   */
   fun parse(userAgent: String?): DeviceInfo {
     if (userAgent.isNullOrBlank()) {
       return DeviceInfo()

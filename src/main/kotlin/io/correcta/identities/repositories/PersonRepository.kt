@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
 
+/** Persistence of [Person]. Document numbers are stored with digits only. */
 @Repository
 interface PersonRepository :
   JpaRepository<Person, String>,

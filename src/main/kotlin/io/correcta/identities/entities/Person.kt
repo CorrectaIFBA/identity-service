@@ -7,6 +7,7 @@ import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 
+/** Natural person identified by a CPF ([documentNumber], stored with digits only). */
 @Entity
 @Table(name = "persons")
 @EntityListeners(AuditingEntityListener::class)
@@ -33,11 +34,13 @@ class Person(
   @Column(nullable = false)
   var updatedAt: Instant? = null,
 ) {
+  /** Social name when present, otherwise the legal name. */
   @get:Transient
   val displayName: String
     get() = socialName ?: legalName
 
+  /** First word of [displayName]. */
   @get:Transient
   val firstName: String
-    get() = displayName.split(" ").firstOrNull() ?: displayName
+    get() = displayName.substringBefore(" ")
 }

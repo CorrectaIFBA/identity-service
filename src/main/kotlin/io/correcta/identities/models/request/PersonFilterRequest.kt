@@ -2,6 +2,7 @@ package io.correcta.identities.models.request
 
 import io.swagger.v3.oas.annotations.media.Schema
 
+/** Optional filters of the person listing. A blank search is ignored. */
 data class PersonFilterRequest(
   @field:Schema(description = "Free-text search over legal name, social name and document number.")
   val search: String? = null,

@@ -4,6 +4,7 @@ import io.correcta.identities.entities.InstitutionalProfile
 import io.correcta.identities.entities.InstitutionalProfileState
 import io.correcta.identities.entities.InstitutionalProfileType
 
+/** Public credential data of an institutional profile. */
 data class InstitutionalProfileCredentialsResponse(
   val login: String,
 ) {
@@ -14,6 +15,7 @@ data class InstitutionalProfileCredentialsResponse(
   }
 }
 
+/** View of an [InstitutionalProfile]. The profile must have a credential. */
 data class GetInstitutionalProfileResponse(
   val id: String,
   val personId: String,

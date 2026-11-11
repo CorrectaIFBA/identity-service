@@ -11,6 +11,7 @@ import io.correcta.identities.models.response.PagedResponse
 import io.correcta.identities.service.PersonService
 import org.springframework.web.bind.annotation.RestController
 
+/** Implementation of [PersonsController] that delegates to [PersonService]. */
 @RestController
 class PersonsControllerImpl(
   val personService: PersonService,

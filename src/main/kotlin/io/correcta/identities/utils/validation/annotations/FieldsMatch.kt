@@ -5,6 +5,7 @@ import jakarta.validation.Constraint
 import jakarta.validation.Payload
 import kotlin.reflect.KClass
 
+/** Validates that the properties [first] and [second] of the annotated class are equal. The violation is reported on [second]. */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 @Constraint(validatedBy = [FieldsMatchValidator::class])

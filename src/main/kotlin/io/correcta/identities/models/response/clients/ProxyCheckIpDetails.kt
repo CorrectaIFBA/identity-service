@@ -3,6 +3,7 @@ package io.correcta.identities.models.response.clients
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.Instant
 
+/** Geolocation returned by proxycheck.io. */
 data class Location(
   @JsonProperty("continent_name")
   val continentName: String? = null,
@@ -34,6 +35,7 @@ data class Location(
   val currency: Currency? = null,
 )
 
+/** Network data returned by proxycheck.io. */
 data class Network(
   val asn: String? = null,
   val range: String? = null,
@@ -43,17 +45,20 @@ data class Network(
   val type: String? = null,
 )
 
+/** Currency of a [Location]. */
 data class Currency(
   val name: String? = null,
   val code: String? = null,
   val symbol: String? = null,
 )
 
+/** Estimated number of devices behind the address and its subnet. */
 data class DeviceEstimate(
   val address: Int? = null,
   val subnet: Int? = null,
 )
 
+/** Proxy, VPN and risk detections returned by proxycheck.io. */
 data class Detections(
   val proxy: Boolean? = null,
   val vpn: Boolean? = null,
@@ -75,6 +80,7 @@ data class Detections(
   val timesSeen: Int? = null,
 )
 
+/** Details of one IP address returned by proxycheck.io. */
 data class ProxyCheckIpDetails(
   val network: Network? = null,
   val location: Location? = null,

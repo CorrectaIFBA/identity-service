@@ -3,8 +3,7 @@ package io.correcta.identities.models.response
 import io.correcta.identities.entities.Person
 import java.time.Instant
 
-// there is no need to expose the person's legal name, because the display name is enough for the client to identify the person
-// only in a detailed view of the person, the legal name should be exposed, but this is not the case here
+/** Summary view of a [Person] for listings. The legal name is exposed only in [GetDetailedPersonResponse]. */
 data class GetPersonResponse(
   val id: String,
   val documentNumber: String,

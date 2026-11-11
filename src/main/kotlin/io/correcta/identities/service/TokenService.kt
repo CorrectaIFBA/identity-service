@@ -18,6 +18,7 @@ import java.time.temporal.ChronoUnit
 import java.util.Date
 import java.util.UUID
 
+/** Issues, validates and rotates JWT access tokens and opaque refresh tokens. */
 @Service
 class TokenService(
   private val refreshTokenRepository: AccountRefreshTokenRepository,
@@ -27,6 +28,7 @@ class TokenService(
   private val signingKey =
     Keys.hmacShaKeyFor(properties.secret.toByteArray())
 
+  /** Issues a new access token and a new refresh token for [session]. */
   fun issueTokens(
     credential: AccountCredential,
     session: AccountSession,
@@ -53,10 +55,8 @@ class TokenService(
   }
 
   /**
-   * Must be called inside a @Transactional method.
-   *
-   * The repository should SELECT ... FOR UPDATE so the same refresh
-   * token cannot be consumed concurrently.
+   * Finds the refresh token of [rawToken] with a write lock. Call inside a transaction, so that the
+   * same refresh token cannot be consumed concurrently. Throws [UnauthorizedException] when it is unknown.
    */
   fun findRefreshTokenForUpdate(
     rawToken: String,
@@ -68,6 +68,7 @@ class TokenService(
       ?: throw UnauthorizedException("Refresh token inválido.")
   }
 
+  /** Throws [UnauthorizedException] when [refreshToken] is revoked, used or expired. */
   fun validateRefreshToken(
     refreshToken: AccountRefreshToken,
   ) {
@@ -92,20 +93,15 @@ class TokenService(
     }
   }
 
+  /** Consumes [previousRefreshToken], links it to a new refresh token and issues a new access token for the same [session]. */
   fun rotateTokens(
     session: AccountSession,
     previousRefreshToken: AccountRefreshToken,
   ): TokenResponse {
     val now = Instant.now()
 
-        /*
-         * Consume current refresh token.
-         */
     previousRefreshToken.usedAt = now
 
-        /*
-         * Create replacement refresh token.
-         */
     val newRefreshToken = generateRefreshTokenEntity(
       session = session,
       now = now,
@@ -118,9 +114,6 @@ class TokenService(
       previousRefreshToken,
     )
 
-        /*
-         * Create another access JWT for the SAME session.
-         */
     val accessToken = generateAccessToken(
       subject = session.accountCredential.institutionalProfile.id!!,
       sessionId = requireNotNull(session.id),

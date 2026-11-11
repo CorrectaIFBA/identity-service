@@ -5,10 +5,12 @@ import io.correcta.identities.models.response.clients.ProxyCheckIpDetails
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
+/** IP geolocation through proxycheck.io. */
 @Service
 class GeoIpService(
   private val proxyCheckClient: ProxyCheckClient,
 ) {
+  /** Returns the details of [ip], or `null` when the response does not contain it. */
   fun lookup(ip: String): ProxyCheckIpDetails? {
     log.info("Looking up geo IP information for IP: $ip")
 

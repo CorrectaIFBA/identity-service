@@ -1,5 +1,6 @@
 package io.correcta.identities.mailer
 
+import io.correcta.identities.config.properties.AccountActivationProperties
 import io.correcta.identities.entities.AccountActivation
 import io.correcta.identities.entities.InstitutionalProfile
 import io.correcta.identities.mailer.config.MailerRabbitMQProperties
@@ -9,12 +10,15 @@ import io.correcta.identities.mailer.requests.TemplateRef
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.stereotype.Component
 
+/** Publishes transactional e-mail requests to the mailer service through RabbitMQ. */
 @Component
 class TransactionalMailProducer(
   val rabbitTemplate: RabbitTemplate,
   val mailerRabbitMQProperties: MailerRabbitMQProperties,
+  val accountActivationProperties: AccountActivationProperties,
 ) {
 
+  /** Sends the account activation e-mail of [profile], with the link that contains the raw [token] of [activation]. */
   fun sendAccountActivationEmail(
     profile: InstitutionalProfile,
     activation: AccountActivation,
@@ -36,7 +40,7 @@ class TransactionalMailProducer(
           key = "templates/activate-account/v1.html",
         ),
         data = mapOf(
-          "activateUrl" to "http://localhost:5173/activate-account/$token",
+          "activateUrl" to accountActivationProperties.activationUrl(token),
           "login" to activation.accountCredential.login,
         ),
       ),

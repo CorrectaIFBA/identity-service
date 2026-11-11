@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
+/** Account credential, activation and profile access operations. */
 @Service
 class AccountService(
   val accountActivationRepository: AccountActivationRepository,
@@ -39,6 +40,7 @@ class AccountService(
   val transactionalMailProducer: TransactionalMailProducer,
 ) {
 
+  /** Returns the account data of the authenticated session. Throws [UnauthorizedException] when the session is revoked or expired. */
   @Transactional(readOnly = true)
   fun getSelfAccountInfo(): GetSelfAccountInfoResponse {
     val authentication = SecurityContextHolder.getContext().authentication
@@ -56,6 +58,7 @@ class AccountService(
     return GetSelfAccountInfoResponse.fromSession(session)
   }
 
+  /** Throws [ConflictException] when the login of [request] is already in use. */
   @Transactional(readOnly = true)
   fun checkIfCredentialExists(request: CreateCredentialRequest) {
     val existingCredential = accountCredentialRepository.findByLogin(request.login)
@@ -65,6 +68,7 @@ class AccountService(
     }
   }
 
+  /** Creates the credential of [institutionalProfile] and sends its activation e-mail. */
   @Transactional
   fun createAccountCredential(request: CreateCredentialRequest, institutionalProfile: InstitutionalProfile) {
     val accountCredential = accountCredentialRepository.save(
@@ -79,12 +83,15 @@ class AccountService(
     issueAccountActivation(institutionalProfile, accountCredential)
   }
 
+  /** Consumes the pending activations of a PENDING profile and sends a new activation e-mail. Throws [ConflictException] for other states. */
   @Transactional
   fun resendAccountActivation(institutionalProfile: InstitutionalProfile) {
-    when (institutionalProfile.state) {
-      InstitutionalProfileState.ACTIVE -> throw ConflictException("O perfil institucional já foi ativado.")
-      InstitutionalProfileState.INACTIVE -> throw ConflictException("O perfil institucional está inativo.")
-      InstitutionalProfileState.PENDING -> Unit
+    if (institutionalProfile.state == InstitutionalProfileState.ACTIVE) {
+      throw ConflictException("O perfil institucional já foi ativado.")
+    }
+
+    if (institutionalProfile.state == InstitutionalProfileState.INACTIVE) {
+      throw ConflictException("O perfil institucional está inativo.")
     }
 
     val accountCredential = requireAccountCredential(institutionalProfile)
@@ -94,6 +101,11 @@ class AccountService(
     issueAccountActivation(institutionalProfile, accountCredential)
   }
 
+  /**
+   * Deactivates [institutionalProfile], consumes its activations and revokes its sessions.
+   *
+   * The authenticated profile and the last active STAFF profile cannot be deactivated.
+   */
   @Transactional
   fun revokeProfileAccess(institutionalProfile: InstitutionalProfile) {
     val principal = getAuthenticatedProfile()
@@ -116,6 +128,7 @@ class AccountService(
     )
   }
 
+  /** Reactivates an INACTIVE profile: ACTIVE when the credential has a password, otherwise PENDING. */
   @Transactional
   fun restoreProfileAccess(institutionalProfile: InstitutionalProfile) {
     if (institutionalProfile.state != InstitutionalProfileState.INACTIVE) {
@@ -134,6 +147,7 @@ class AccountService(
     institutionalProfileRepository.save(institutionalProfile)
   }
 
+  /** Sets the password of the credential of the current activation request, activates the profile and consumes the activation. */
   @Transactional
   fun createAccountPassword(request: CreatePasswordRequest) {
     val authentication = SecurityContextHolder.getContext().authentication
@@ -153,6 +167,7 @@ class AccountService(
     institutionalProfileRepository.save(institutionalProfile)
   }
 
+  /** True when no STAFF profile exists. */
   @Transactional(readOnly = true)
   fun isNecessaryToCreateFirstStaffAccount(): Boolean {
     val count = institutionalProfileRepository.countByType(InstitutionalProfileType.STAFF)
@@ -209,6 +224,7 @@ class AccountService(
       ?: throw InternalServerErrorException("Falha ao recuperar o principal da autenticação")
   }
 
+  /** Finds the activation of the raw [token]. Throws [UnauthorizedException] when it is unknown. */
   @Transactional
   fun getActivationByToken(token: String): AccountActivation {
     val tokenHash = token.toSha256Hash()

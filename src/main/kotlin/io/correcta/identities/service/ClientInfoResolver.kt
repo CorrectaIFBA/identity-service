@@ -6,12 +6,18 @@ import io.correcta.identities.utils.RequestExt.getClientIpAddress
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.stereotype.Service
 
+/** Builds the [ClientInfo] of a login request. */
 @Service
 class ClientInfoResolver(
   private val userAgentParser: UserAgentParser,
   private val geoIpService: GeoIpService,
 ) {
 
+  /**
+   * Reads the user agent and client IP of [request], parses the device and, for public addresses, looks up the geolocation.
+   *
+   * Throws [IllegalArgumentException] when the request has no IP address.
+   */
   fun resolve(request: HttpServletRequest): ClientInfo {
     val userAgent = request.getHeader("User-Agent")
     val ipAddress = request.getClientIpAddress() ?: throw IllegalArgumentException("IP address not found in request")
@@ -34,6 +40,7 @@ class ClientInfoResolver(
     )
   }
 
+  /** True for private, loopback and link-local IPv4 addresses. */
   fun isAddressPrivateOrLocal(ipAddress: String): Boolean {
     val privateIpPatterns = listOf(
       Regex("^10\\..*"),

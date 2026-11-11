@@ -7,6 +7,11 @@ import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 
+/**
+ * Login credential of an institutional profile.
+ *
+ * [password] holds the BCrypt hash and stays `null` until the account is activated.
+ */
 @Entity
 @Table(name = "account_credentials")
 @EntityListeners(AuditingEntityListener::class)

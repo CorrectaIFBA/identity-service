@@ -7,6 +7,11 @@ import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 
+/**
+ * Role of a [Person] in the institution, such as student, faculty or staff.
+ *
+ * A person can have one non-inactive profile of each [InstitutionalProfileType].
+ */
 @Entity
 @Table(name = "institutional_profiles")
 @EntityListeners(AuditingEntityListener::class)

@@ -10,9 +10,11 @@ import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.Instant
 
+/** Persistence of [AccountRefreshToken]. */
 @Repository
 interface AccountRefreshTokenRepository : JpaRepository<AccountRefreshToken, String> {
 
+  /** Finds a refresh token by hash with a pessimistic write lock, so that the token cannot be rotated twice concurrently. Call inside a transaction. */
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query(
     """
@@ -27,6 +29,7 @@ interface AccountRefreshTokenRepository : JpaRepository<AccountRefreshToken, Str
     @Param("tokenHash") tokenHash: String,
   ): AccountRefreshToken?
 
+  /** Revokes all non-revoked refresh tokens of a session. Returns the number of updated rows. */
   @Modifying
   @Query(
     """

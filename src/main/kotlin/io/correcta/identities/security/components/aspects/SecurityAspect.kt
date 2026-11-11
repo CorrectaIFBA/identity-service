@@ -16,32 +16,41 @@ import org.springframework.security.authorization.AuthorizationDeniedException
 import org.springframework.stereotype.Component
 import java.lang.reflect.Method
 
+/**
+ * Enforces the security annotations of the controllers before each controller method runs.
+ *
+ * The annotations are read from the method, its implementation and the interfaces that declare it.
+ */
 @Aspect
 @Component
 class SecurityAspect(
   private val scopeEvaluator: ScopeEvaluatorComponent,
 ) {
 
+  /**
+   * Throws [UnauthorizedException] when a required authentication is missing, and
+   * [AuthorizationDeniedException] when [IsProfileType] does not match.
+   */
   @Before("execution(* io.correcta.identities.controllers..*(..))")
   fun authorize(joinPoint: JoinPoint) {
     val isLoggedUser = findSecurityAnnotation<IsLoggedUser>(joinPoint)
     if (isLoggedUser != null && !scopeEvaluator.isLoggedUser()) {
-      throwNotLoggedIn()
+      throw notLoggedIn()
     }
 
     val isAccountActivationRequest = findSecurityAnnotation<IsAccountActivationRequest>(joinPoint)
     if (isAccountActivationRequest != null && !scopeEvaluator.isAccountActivationRequest()) {
-      throwNotLoggedIn()
+      throw notLoggedIn()
     }
 
     val isInternalRequest = findSecurityAnnotation<IsInternalRequest>(joinPoint)
     if (isInternalRequest != null && !scopeEvaluator.isInternalRequest()) {
-      throwNotLoggedIn()
+      throw notLoggedIn()
     }
 
     val isProfileType = findSecurityAnnotation<IsProfileType>(joinPoint)
     if (isProfileType != null && !scopeEvaluator.isProfileType(isProfileType.profileType)) {
-      throwAccessDenied()
+      throw accessDenied()
     }
   }
 
@@ -76,7 +85,7 @@ class SecurityAspect(
     it.name == method.name && it.parameterTypes.contentEquals(method.parameterTypes)
   }
 
-  private fun throwAccessDenied(): Nothing = throw AuthorizationDeniedException("Você não tem permissão para acessar este recurso.")
+  private fun accessDenied() = AuthorizationDeniedException("Você não tem permissão para acessar este recurso.")
 
-  private fun throwNotLoggedIn(): Nothing = throw UnauthorizedException("É necessário estar autenticado para acessar este recurso.")
+  private fun notLoggedIn() = UnauthorizedException("É necessário estar autenticado para acessar este recurso.")
 }

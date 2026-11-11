@@ -5,6 +5,7 @@ import jakarta.validation.ConstraintValidator
 import jakarta.validation.ConstraintValidatorContext
 import kotlin.reflect.full.memberProperties
 
+/** Validator of [FieldsMatch]. */
 class FieldsMatchValidator : ConstraintValidator<FieldsMatch, Any> {
 
   private lateinit var firstField: String
@@ -25,12 +26,10 @@ class FieldsMatchValidator : ConstraintValidator<FieldsMatch, Any> {
 
     val firstValue = properties
       .firstOrNull { it.name == firstField }
-      ?.getter
       ?.call(value)
 
     val secondValue = properties
       .firstOrNull { it.name == secondField }
-      ?.getter
       ?.call(value)
 
     if (firstValue == secondValue) {

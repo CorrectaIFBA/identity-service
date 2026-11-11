@@ -11,6 +11,7 @@ import io.correcta.identities.models.response.PagedResponse
 import io.correcta.identities.service.InstitutionalProfileService
 import org.springframework.web.bind.annotation.RestController
 
+/** Implementation of [InstitutionalProfilesController] that delegates to [InstitutionalProfileService]. */
 @RestController
 class InstitutionalProfilesControllerImpl(
   val institutionalProfileService: InstitutionalProfileService,

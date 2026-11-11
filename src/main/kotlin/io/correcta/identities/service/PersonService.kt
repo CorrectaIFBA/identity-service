@@ -21,6 +21,7 @@ import io.correcta.identities.utils.PaginationExt.toPagedResponse
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
+/** Person management. */
 @Service
 class PersonService(
   val personRepository: PersonRepository,
@@ -29,6 +30,7 @@ class PersonService(
   val accountService: AccountService,
 ) {
 
+  /** Returns a page of persons that match [filter]. Throws [BadRequestException] for a sort field that is not allowed. */
   @Transactional(readOnly = true)
   fun getAllPersons(filter: PersonFilterRequest, pagination: PaginationRequest): PagedResponse<GetPersonResponse> = personRepository
     .findAll(
@@ -36,9 +38,11 @@ class PersonService(
       pagination.toPageRequest(SORTABLE_FIELDS),
     ).toPagedResponse(pagination, GetPersonResponse::fromPerson)
 
+  /** Returns the person [personId] with its profiles. Throws [NotFoundException] when it does not exist. */
   @Transactional(readOnly = true)
   fun getPersonById(personId: String): GetDetailedPersonResponse = getDetailedPerson(requirePerson(personId))
 
+  /** Creates a person. Throws [ConflictException] when the CPF is registered and [BadRequestException] when the legal name is blank. */
   @Transactional
   fun createPerson(request: PersonReferenceRequest): GetDetailedPersonResponse {
     val documentNumber = request.documentNumber.normalizeDocumentNumber()
@@ -50,6 +54,7 @@ class PersonService(
     return getDetailedPerson(savePerson(request))
   }
 
+  /** Updates the names of the person [personId]. An empty social name removes it. */
   @Transactional
   fun updatePerson(personId: String, request: UpdatePersonRequest): GetDetailedPersonResponse {
     val person = requirePerson(personId)
@@ -60,6 +65,7 @@ class PersonService(
     return getDetailedPerson(personRepository.save(person))
   }
 
+  /** Deactivates the person [personId] and all of its non-inactive profiles. See [AccountService.revokeProfileAccess]. */
   @Transactional
   fun deactivatePerson(personId: String): GetDetailedPersonResponse {
     val person = requirePerson(personId)
@@ -78,6 +84,7 @@ class PersonService(
     return getDetailedPerson(personRepository.save(person))
   }
 
+  /** Reactivates the person [personId]. Its profiles stay inactive. */
   @Transactional
   fun reactivatePerson(personId: String): GetDetailedPersonResponse {
     val person = requirePerson(personId)
@@ -91,6 +98,7 @@ class PersonService(
     return getDetailedPerson(personRepository.save(person))
   }
 
+  /** Returns the person with the CPF of [request], or creates it when missing. */
   @Transactional
   fun resolvePerson(request: PersonReferenceRequest): Person {
     val existingPerson = personRepository.findByDocumentNumber(request.documentNumber.normalizeDocumentNumber())
@@ -102,6 +110,7 @@ class PersonService(
     return savePerson(request)
   }
 
+  /** Returns [person] with its profiles, oldest first. */
   @Transactional(readOnly = true)
   fun getDetailedPerson(person: Person): GetDetailedPersonResponse {
     val institutionalProfiles = institutionalProfileRepository.findAllByPersonIdOrderByCreatedAtAsc(person.id!!)

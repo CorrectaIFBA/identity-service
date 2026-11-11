@@ -3,6 +3,7 @@ package io.correcta.identities.models.response
 import io.correcta.identities.entities.AccountSession
 import java.time.Instant
 
+/** Public view of an [AccountSession]. */
 data class AccountSessionResponse(
   val sessionId: String,
   val lastSeenAt: Instant?,

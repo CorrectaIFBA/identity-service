@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 
+/** Implementation of [AuthenticationController] that delegates to [AuthenticationService]. */
 @RestController
 class AuthenticationControllerImpl(
   val authenticationService: AuthenticationService,

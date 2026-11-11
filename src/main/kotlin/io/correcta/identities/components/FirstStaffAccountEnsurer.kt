@@ -13,6 +13,12 @@ import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
+/**
+ * Creates the first STAFF institutional profile on startup when no STAFF profile exists yet.
+ *
+ * Runs only when `identities.first-account.setup-enabled` is `true`. The account data comes from
+ * [FirstStaffAccountSetupProperties]. A login conflict is logged and does not stop the startup.
+ */
 @Component
 @ConditionalOnProperty(
   prefix = "identities.first-account",
