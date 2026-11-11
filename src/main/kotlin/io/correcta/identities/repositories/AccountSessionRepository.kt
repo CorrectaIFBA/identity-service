@@ -9,12 +9,11 @@ import org.springframework.stereotype.Repository
 @Repository
 interface AccountSessionRepository : JpaRepository<AccountSession, String> {
 
-    @Query(
-        "SELECT s FROM AccountSession s " +
-                "WHERE s.accountCredential.institutionalProfile.id = :profileId " +
-                "AND s.revokedAt IS NULL " +
-                "AND s.expiresAt > CURRENT_TIMESTAMP"
-    )
-    fun findActiveSessionsByProfileId(@Param("profileId") profileId: String): List<AccountSession>
-
+  @Query(
+    "SELECT s FROM AccountSession s " +
+      "WHERE s.accountCredential.institutionalProfile.id = :profileId " +
+      "AND s.revokedAt IS NULL " +
+      "AND s.expiresAt > CURRENT_TIMESTAMP",
+  )
+  fun findActiveSessionsByProfileId(@Param("profileId") profileId: String): List<AccountSession>
 }

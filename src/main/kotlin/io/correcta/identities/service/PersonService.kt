@@ -23,115 +23,109 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class PersonService(
-    val personRepository: PersonRepository,
-    val institutionalProfileRepository: InstitutionalProfileRepository,
+  val personRepository: PersonRepository,
+  val institutionalProfileRepository: InstitutionalProfileRepository,
 
-    val accountService: AccountService,
+  val accountService: AccountService,
 ) {
 
-    @Transactional(readOnly = true)
-    fun getAllPersons(filter: PersonFilterRequest, pagination: PaginationRequest): PagedResponse<GetPersonResponse> {
-        return personRepository
-            .findAll(
-                PersonSpecifications.fromFilter(filter),
-                pagination.toPageRequest(SORTABLE_FIELDS)
-            ).toPagedResponse(pagination, GetPersonResponse::fromPerson)
+  @Transactional(readOnly = true)
+  fun getAllPersons(filter: PersonFilterRequest, pagination: PaginationRequest): PagedResponse<GetPersonResponse> = personRepository
+    .findAll(
+      PersonSpecifications.fromFilter(filter),
+      pagination.toPageRequest(SORTABLE_FIELDS),
+    ).toPagedResponse(pagination, GetPersonResponse::fromPerson)
+
+  @Transactional(readOnly = true)
+  fun getPersonById(personId: String): GetDetailedPersonResponse = getDetailedPerson(requirePerson(personId))
+
+  @Transactional
+  fun createPerson(request: PersonReferenceRequest): GetDetailedPersonResponse {
+    val documentNumber = request.documentNumber.normalizeDocumentNumber()
+
+    if (personRepository.existsByDocumentNumber(documentNumber)) {
+      throw ConflictException("Já existe uma pessoa cadastrada com o documento informado.")
     }
 
-    @Transactional(readOnly = true)
-    fun getPersonById(personId: String): GetDetailedPersonResponse {
-        return getDetailedPerson(requirePerson(personId))
+    return getDetailedPerson(savePerson(request))
+  }
+
+  @Transactional
+  fun updatePerson(personId: String, request: UpdatePersonRequest): GetDetailedPersonResponse {
+    val person = requirePerson(personId)
+
+    request.legalName?.let { person.legalName = it.trim() }
+    request.socialName?.let { person.socialName = it.trim().ifEmpty { null } }
+
+    return getDetailedPerson(personRepository.save(person))
+  }
+
+  @Transactional
+  fun deactivatePerson(personId: String): GetDetailedPersonResponse {
+    val person = requirePerson(personId)
+
+    if (!person.active) {
+      throw ConflictException("A pessoa já está inativa.")
     }
 
-    @Transactional
-    fun createPerson(request: PersonReferenceRequest): GetDetailedPersonResponse {
-        val documentNumber = request.documentNumber.normalizeDocumentNumber()
+    institutionalProfileRepository
+      .findAllByPersonIdOrderByCreatedAtAsc(personId)
+      .filter { it.state != InstitutionalProfileState.INACTIVE }
+      .forEach(accountService::revokeProfileAccess)
 
-        if (personRepository.existsByDocumentNumber(documentNumber)) {
-            throw ConflictException("Já existe uma pessoa cadastrada com o documento informado.")
-        }
+    person.active = false
 
-        return getDetailedPerson(savePerson(request))
+    return getDetailedPerson(personRepository.save(person))
+  }
+
+  @Transactional
+  fun reactivatePerson(personId: String): GetDetailedPersonResponse {
+    val person = requirePerson(personId)
+
+    if (person.active) {
+      throw ConflictException("A pessoa já está ativa.")
     }
 
-    @Transactional
-    fun updatePerson(personId: String, request: UpdatePersonRequest): GetDetailedPersonResponse {
-        val person = requirePerson(personId)
+    person.active = true
 
-        request.legalName?.let { person.legalName = it.trim() }
-        request.socialName?.let { person.socialName = it.trim().ifEmpty { null } }
+    return getDetailedPerson(personRepository.save(person))
+  }
 
-        return getDetailedPerson(personRepository.save(person))
+  @Transactional
+  fun resolvePerson(request: PersonReferenceRequest): Person {
+    val existingPerson = personRepository.findByDocumentNumber(request.documentNumber.normalizeDocumentNumber())
+
+    if (existingPerson != null) {
+      return existingPerson
     }
 
-    @Transactional
-    fun deactivatePerson(personId: String): GetDetailedPersonResponse {
-        val person = requirePerson(personId)
+    return savePerson(request)
+  }
 
-        if (!person.active) {
-            throw ConflictException("A pessoa já está inativa.")
-        }
+  @Transactional(readOnly = true)
+  fun getDetailedPerson(person: Person): GetDetailedPersonResponse {
+    val institutionalProfiles = institutionalProfileRepository.findAllByPersonIdOrderByCreatedAtAsc(person.id!!)
 
-        institutionalProfileRepository
-            .findAllByPersonIdOrderByCreatedAtAsc(personId)
-            .filter { it.state != InstitutionalProfileState.INACTIVE }
-            .forEach(accountService::revokeProfileAccess)
+    return GetDetailedPersonResponse.fromPerson(person, institutionalProfiles)
+  }
 
-        person.active = false
+  private fun requirePerson(personId: String): Person = personRepository.findById(personId).orElse(null)
+    ?: throw NotFoundException("Pessoa não encontrada.")
 
-        return getDetailedPerson(personRepository.save(person))
-    }
+  private fun savePerson(request: PersonReferenceRequest): Person {
+    val legalName = request.legalName?.trim()?.takeIf { it.isNotEmpty() }
+      ?: throw BadRequestException("O nome legal é obrigatório para cadastrar uma nova pessoa")
 
-    @Transactional
-    fun reactivatePerson(personId: String): GetDetailedPersonResponse {
-        val person = requirePerson(personId)
+    return personRepository.save(
+      Person(
+        documentNumber = request.documentNumber.normalizeDocumentNumber(),
+        legalName = legalName,
+        socialName = request.socialName?.trim()?.ifEmpty { null },
+      ),
+    )
+  }
 
-        if (person.active) {
-            throw ConflictException("A pessoa já está ativa.")
-        }
-
-        person.active = true
-
-        return getDetailedPerson(personRepository.save(person))
-    }
-
-    @Transactional
-    fun resolvePerson(request: PersonReferenceRequest): Person {
-        val existingPerson = personRepository.findByDocumentNumber(request.documentNumber.normalizeDocumentNumber())
-
-        if (existingPerson != null) {
-            return existingPerson
-        }
-
-        return savePerson(request)
-    }
-
-    @Transactional(readOnly = true)
-    fun getDetailedPerson(person: Person): GetDetailedPersonResponse {
-        val institutionalProfiles = institutionalProfileRepository.findAllByPersonIdOrderByCreatedAtAsc(person.id!!)
-
-        return GetDetailedPersonResponse.fromPerson(person, institutionalProfiles)
-    }
-
-    private fun requirePerson(personId: String): Person {
-        return personRepository.findById(personId).orElse(null)
-            ?: throw NotFoundException("Pessoa não encontrada.")
-    }
-
-    private fun savePerson(request: PersonReferenceRequest): Person {
-        val legalName = request.legalName?.trim()?.takeIf { it.isNotEmpty() }
-            ?: throw BadRequestException("O nome legal é obrigatório para cadastrar uma nova pessoa")
-
-        return personRepository.save(
-            Person(
-                documentNumber = request.documentNumber.normalizeDocumentNumber(),
-                legalName = legalName,
-                socialName = request.socialName?.trim()?.ifEmpty { null }
-            )
-        )
-    }
-
-    companion object {
-        private val SORTABLE_FIELDS = setOf("createdAt", "updatedAt", "legalName", "documentNumber")
-    }
+  companion object {
+    private val SORTABLE_FIELDS = setOf("createdAt", "updatedAt", "legalName", "documentNumber")
+  }
 }

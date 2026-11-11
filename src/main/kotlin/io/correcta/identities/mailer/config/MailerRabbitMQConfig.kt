@@ -7,6 +7,6 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class MailerRabbitMQConfig {
-    @Bean
-    fun rabbitMessageConverter(): MessageConverter = Jackson2JsonMessageConverter()
+  @Bean
+  fun rabbitMessageConverter(): MessageConverter = Jackson2JsonMessageConverter()
 }

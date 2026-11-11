@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface AccountCredentialRepository : JpaRepository<AccountCredential, String> {
-    fun findByLogin(login: String): AccountCredential?
+  fun findByLogin(login: String): AccountCredential?
 }

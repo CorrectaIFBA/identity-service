@@ -7,19 +7,19 @@ import org.springframework.stereotype.Service
 
 @Service
 class GeoIpService(
-    private val proxyCheckClient: ProxyCheckClient
+  private val proxyCheckClient: ProxyCheckClient,
 ) {
-    fun lookup(ip: String): ProxyCheckIpDetails? {
-        log.info("Looking up geo IP information for IP: $ip")
+  fun lookup(ip: String): ProxyCheckIpDetails? {
+    log.info("Looking up geo IP information for IP: $ip")
 
-        val response = proxyCheckClient.checkIp(ip)
+    val response = proxyCheckClient.checkIp(ip)
 
-        log.debug("Geo IP lookup response for IP {}: {}", ip, response)
+    log.debug("Geo IP lookup response for IP {}: {}", ip, response)
 
-        return response.addresses[ip]
-    }
+    return response.addresses[ip]
+  }
 
-    companion object {
-        private val log = LoggerFactory.getLogger(GeoIpService::class.java)
-    }
+  companion object {
+    private val log = LoggerFactory.getLogger(GeoIpService::class.java)
+  }
 }

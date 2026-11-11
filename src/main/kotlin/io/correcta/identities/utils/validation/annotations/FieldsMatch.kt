@@ -9,9 +9,9 @@ import kotlin.reflect.KClass
 @Retention(AnnotationRetention.RUNTIME)
 @Constraint(validatedBy = [FieldsMatchValidator::class])
 annotation class FieldsMatch(
-    val first: String,
-    val second: String,
-    val message: String = "Os campos não coincidem",
-    val groups: Array<KClass<*>> = [],
-    val payload: Array<KClass<out Payload>> = []
+  val first: String,
+  val second: String,
+  val message: String = "Os campos não coincidem",
+  val groups: Array<KClass<*>> = [],
+  val payload: Array<KClass<out Payload>> = [],
 )

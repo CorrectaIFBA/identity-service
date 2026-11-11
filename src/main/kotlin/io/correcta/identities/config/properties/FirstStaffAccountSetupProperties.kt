@@ -4,10 +4,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties("identities.first-account")
 data class FirstStaffAccountSetupProperties(
-    val email: String = "admin@ifba.edu.br",
+  val email: String = "admin@ifba.edu.br",
 
-    val personName: String = "Administrador",
-    val personDocumentNumber: String = "000.000.000-00",
+  val personName: String = "Administrador",
+  val personDocumentNumber: String = "000.000.000-00",
 
-    val login: String = email
+  val login: String = email,
 )

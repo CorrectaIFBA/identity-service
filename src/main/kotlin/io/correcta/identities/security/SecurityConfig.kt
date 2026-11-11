@@ -20,54 +20,53 @@ import org.springframework.web.servlet.HandlerExceptionResolver
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
-    private val activationRequestAuthenticationProvider: ActivationRequestAuthenticationProvider,
-    private val profileAuthenticationProvider: ProfileAuthenticationProvider,
-    private val internalRequestAuthenticationProvider: InternalRequestAuthenticationProvider,
-    private val objectMapper: ObjectMapper,
-    @Qualifier("handlerExceptionResolver")
-    private val handlerExceptionResolver: HandlerExceptionResolver
+  private val activationRequestAuthenticationProvider: ActivationRequestAuthenticationProvider,
+  private val profileAuthenticationProvider: ProfileAuthenticationProvider,
+  private val internalRequestAuthenticationProvider: InternalRequestAuthenticationProvider,
+  private val objectMapper: ObjectMapper,
+  @Qualifier("handlerExceptionResolver")
+  private val handlerExceptionResolver: HandlerExceptionResolver,
 ) {
 
-    private val allowedOriginPatterns = listOf(
-        "https://correcta.staily.dev",
-        "http://localhost:8080"
+  private val allowedOriginPatterns = listOf(
+    "https://correcta.staily.dev",
+    "http://localhost:8080",
+  )
+
+  @Bean
+  fun corsConfigurationSource(): CorsConfigurationSource {
+    val configuration = CorsConfiguration()
+    configuration.allowedOriginPatterns = allowedOriginPatterns
+    configuration.allowedMethods = listOf("*")
+    configuration.allowedHeaders = listOf("*")
+    configuration.allowCredentials = true
+
+    val source = UrlBasedCorsConfigurationSource()
+    source.registerCorsConfiguration("/**", configuration)
+    return source
+  }
+
+  @Bean
+  fun filterChain(http: HttpSecurity): SecurityFilterChain {
+    http.cors { }
+    http.authorizeHttpRequests {
+      it.anyRequest().permitAll()
+    }
+    http.httpBasic { it.disable() }
+    http.formLogin { it.disable() }
+    http.anonymous { it.disable() }
+    http.csrf { it.disable() }
+    http.addFilterBefore(
+      AuthenticationFilter(
+        activationRequestAuthenticationProvider,
+        profileAuthenticationProvider,
+        internalRequestAuthenticationProvider,
+        allowedOriginPatterns,
+        handlerExceptionResolver,
+      ),
+      UsernamePasswordAuthenticationFilter::class.java,
     )
 
-    @Bean
-    fun corsConfigurationSource(): CorsConfigurationSource {
-        val configuration = CorsConfiguration()
-        configuration.allowedOriginPatterns = allowedOriginPatterns
-        configuration.allowedMethods = listOf("*")
-        configuration.allowedHeaders = listOf("*")
-        configuration.allowCredentials = true
-
-        val source = UrlBasedCorsConfigurationSource()
-        source.registerCorsConfiguration("/**", configuration)
-        return source
-    }
-
-    @Bean
-    fun filterChain(http: HttpSecurity): SecurityFilterChain {
-        http.cors { }
-        http.authorizeHttpRequests {
-            it.anyRequest().permitAll()
-        }
-        http.httpBasic { it.disable() }
-        http.formLogin { it.disable() }
-        http.anonymous { it.disable() }
-        http.csrf { it.disable() }
-        http.addFilterBefore(
-            AuthenticationFilter(
-                activationRequestAuthenticationProvider,
-                profileAuthenticationProvider,
-                internalRequestAuthenticationProvider,
-                allowedOriginPatterns,
-                handlerExceptionResolver
-            ),
-            UsernamePasswordAuthenticationFilter::class.java
-        )
-
-        return http.build()
-    }
-
+    return http.build()
+  }
 }

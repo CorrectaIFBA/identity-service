@@ -23,55 +23,57 @@ import org.springframework.web.bind.annotation.RequestMapping
 @Tag(name = "Authentication", description = "Authentication operations endpoint.")
 interface AuthenticationController {
 
-    @Operation(
-        summary = "Realiza o login do usuário",
-        description = "Autentica o usuário e retorna um token de acesso."
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "Login realizado com sucesso",
-                content = [Content(mediaType = "application/json", schema = Schema(implementation = TokenResponse::class))]
-            ),
-            ApiResponse(responseCode = "401", description = "Credenciais inválidas")]
-    )
-    @PostMapping("/login")
-    fun loginUser(
-        request: HttpServletRequest,
-        @Valid @RequestBody body: LoginUserRequest
-    ): ResponseEntity<TokenResponse>
+  @Operation(
+    summary = "Realiza o login do usuário",
+    description = "Autentica o usuário e retorna um token de acesso.",
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Login realizado com sucesso",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = TokenResponse::class))],
+      ),
+      ApiResponse(responseCode = "401", description = "Credenciais inválidas"),
+    ],
+  )
+  @PostMapping("/login")
+  fun loginUser(
+    request: HttpServletRequest,
+    @Valid @RequestBody body: LoginUserRequest,
+  ): ResponseEntity<TokenResponse>
 
-    @Operation(
-        summary = "Realiza o logout do usuário",
-        description = "Encerra a sessão do usuário, invalidando o token de acesso e o token de atualização."
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "204",
-                description = "Logout realizado com sucesso"
-            ),
-            ApiResponse(responseCode = "401", description = "Token de acesso inválido ou expirado")]
-    )
-    @PostMapping("/logout")
-    @IsLoggedUser
-    fun logoutUser(@AuthenticationPrincipal principal: ProfilePrincipal): ResponseEntity<Void>
+  @Operation(
+    summary = "Realiza o logout do usuário",
+    description = "Encerra a sessão do usuário, invalidando o token de acesso e o token de atualização.",
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Logout realizado com sucesso",
+      ),
+      ApiResponse(responseCode = "401", description = "Token de acesso inválido ou expirado"),
+    ],
+  )
+  @PostMapping("/logout")
+  @IsLoggedUser
+  fun logoutUser(@AuthenticationPrincipal principal: ProfilePrincipal): ResponseEntity<Void>
 
-    @Operation(
-        summary = "Atualiza o token de acesso",
-        description = "Recebe um token de atualização válido e retorna um novo token de acesso."
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "Token de acesso atualizado com sucesso",
-                content = [Content(mediaType = "application/json", schema = Schema(implementation = TokenResponse::class))]
-            ),
-            ApiResponse(responseCode = "401", description = "Token de atualização inválido ou expirado")]
-    )
-    @PostMapping("/refresh-token")
-    fun refreshAccessToken(@Valid @RequestBody request: RefreshTokenRequest): ResponseEntity<TokenResponse>
-
+  @Operation(
+    summary = "Atualiza o token de acesso",
+    description = "Recebe um token de atualização válido e retorna um novo token de acesso.",
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Token de acesso atualizado com sucesso",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = TokenResponse::class))],
+      ),
+      ApiResponse(responseCode = "401", description = "Token de atualização inválido ou expirado"),
+    ],
+  )
+  @PostMapping("/refresh-token")
+  fun refreshAccessToken(@Valid @RequestBody request: RefreshTokenRequest): ResponseEntity<TokenResponse>
 }

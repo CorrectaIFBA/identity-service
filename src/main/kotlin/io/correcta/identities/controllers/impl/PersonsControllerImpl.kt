@@ -13,30 +13,18 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class PersonsControllerImpl(
-    val personService: PersonService
+  val personService: PersonService,
 ) : PersonsController {
 
-    override fun getAllPersons(filter: PersonFilterRequest, pagination: PaginationRequest): PagedResponse<GetPersonResponse> {
-        return personService.getAllPersons(filter, pagination)
-    }
+  override fun getAllPersons(filter: PersonFilterRequest, pagination: PaginationRequest): PagedResponse<GetPersonResponse> = personService.getAllPersons(filter, pagination)
 
-    override fun getPersonById(personId: String): GetDetailedPersonResponse {
-        return personService.getPersonById(personId)
-    }
+  override fun getPersonById(personId: String): GetDetailedPersonResponse = personService.getPersonById(personId)
 
-    override fun createPerson(body: PersonReferenceRequest): GetDetailedPersonResponse {
-        return personService.createPerson(body)
-    }
+  override fun createPerson(body: PersonReferenceRequest): GetDetailedPersonResponse = personService.createPerson(body)
 
-    override fun updatePerson(personId: String, body: UpdatePersonRequest): GetDetailedPersonResponse {
-        return personService.updatePerson(personId, body)
-    }
+  override fun updatePerson(personId: String, body: UpdatePersonRequest): GetDetailedPersonResponse = personService.updatePerson(personId, body)
 
-    override fun deactivatePerson(personId: String): GetDetailedPersonResponse {
-        return personService.deactivatePerson(personId)
-    }
+  override fun deactivatePerson(personId: String): GetDetailedPersonResponse = personService.deactivatePerson(personId)
 
-    override fun reactivatePerson(personId: String): GetDetailedPersonResponse {
-        return personService.reactivatePerson(personId)
-    }
+  override fun reactivatePerson(personId: String): GetDetailedPersonResponse = personService.reactivatePerson(personId)
 }

@@ -10,33 +10,30 @@ import org.springframework.data.jpa.domain.Specification
 
 object PersonSpecifications {
 
-    fun fromFilter(filter: PersonFilterRequest): Specification<Person> {
-        return Specification.allOf(
-            listOfNotNull(
-                filter.search?.takeIf { it.isNotBlank() }?.let(::matchesSearch),
-                filter.active?.let(::hasActive),
-            )
-        )
+  fun fromFilter(filter: PersonFilterRequest): Specification<Person> = Specification.allOf(
+    listOfNotNull(
+      filter.search?.takeIf { it.isNotBlank() }?.let(::matchesSearch),
+      filter.active?.let(::hasActive),
+    ),
+  )
+
+  private fun matchesSearch(search: String) = Specification<Person> { root, _, cb ->
+    val pattern = search.toContainsPattern()
+
+    val predicates = mutableListOf<Predicate>(
+      cb.like(cb.lower(root.get("legalName")), pattern, LIKE_ESCAPE_CHAR),
+      cb.like(cb.lower(root.get("socialName")), pattern, LIKE_ESCAPE_CHAR),
+    )
+
+    val digits = search.normalizeDocumentNumber()
+    if (digits.isNotEmpty()) {
+      predicates += cb.like(root.get("documentNumber"), "%$digits%")
     }
 
-    private fun matchesSearch(search: String) = Specification<Person> { root, _, cb ->
-        val pattern = search.toContainsPattern()
+    cb.or(*predicates.toTypedArray())
+  }
 
-        val predicates = mutableListOf<Predicate>(
-            cb.like(cb.lower(root.get("legalName")), pattern, LIKE_ESCAPE_CHAR),
-            cb.like(cb.lower(root.get("socialName")), pattern, LIKE_ESCAPE_CHAR),
-        )
-
-        val digits = search.normalizeDocumentNumber()
-        if (digits.isNotEmpty()) {
-            predicates += cb.like(root.get("documentNumber"), "%$digits%")
-        }
-
-        cb.or(*predicates.toTypedArray())
-    }
-
-    private fun hasActive(active: Boolean) = Specification<Person> { root, _, cb ->
-        cb.equal(root.get<Boolean>("active"), active)
-    }
-
+  private fun hasActive(active: Boolean) = Specification<Person> { root, _, cb ->
+    cb.equal(root.get<Boolean>("active"), active)
+  }
 }

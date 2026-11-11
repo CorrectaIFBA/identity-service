@@ -8,14 +8,12 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class AccountControllerImpl(
-    val accountService: AccountService
+  val accountService: AccountService,
 ) : AccountController {
 
-    override fun getSelfAccountInfo(): GetSelfAccountInfoResponse {
-        return accountService.getSelfAccountInfo()
-    }
+  override fun getSelfAccountInfo(): GetSelfAccountInfoResponse = accountService.getSelfAccountInfo()
 
-    override fun createAccountPassword(body: CreatePasswordRequest) {
-        accountService.createAccountPassword(body)
-    }
+  override fun createAccountPassword(body: CreatePasswordRequest) {
+    accountService.createAccountPassword(body)
+  }
 }

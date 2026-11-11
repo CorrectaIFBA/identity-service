@@ -9,22 +9,21 @@ import org.springframework.stereotype.Component
 
 @Component
 class ActivationRequestAuthenticationProvider(
-    val accountService: AccountService
+  val accountService: AccountService,
 ) {
 
-    fun getAuthentication(token: String): ActivationRequestAuthentication {
-        val activation = accountService.getActivationByToken(token)
+  fun getAuthentication(token: String): ActivationRequestAuthentication {
+    val activation = accountService.getActivationByToken(token)
 
-        if (!activation.active) {
-            throw UnauthorizedException("O token de ativação fornecido não é mais válido. Por favor, solicite um novo token de ativação.")
-        }
-
-        val principal = ActivationRequestPrincipal(
-            activationId = activation.id ?: throw InternalServerErrorException("Activation ID is null"),
-            credentialId = activation.accountCredential.id ?: throw InternalServerErrorException("Credential ID is null")
-        )
-
-        return ActivationRequestAuthentication(principal)
+    if (!activation.active) {
+      throw UnauthorizedException("O token de ativação fornecido não é mais válido. Por favor, solicite um novo token de ativação.")
     }
 
+    val principal = ActivationRequestPrincipal(
+      activationId = activation.id ?: throw InternalServerErrorException("Activation ID is null"),
+      credentialId = activation.accountCredential.id ?: throw InternalServerErrorException("Credential ID is null"),
+    )
+
+    return ActivationRequestAuthentication(principal)
+  }
 }

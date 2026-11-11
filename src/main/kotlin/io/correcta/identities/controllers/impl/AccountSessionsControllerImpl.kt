@@ -7,20 +7,20 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class AccountSessionsControllerImpl(
-    val sessionService: SessionService
+  val sessionService: SessionService,
 ) : AccountSessionsController {
 
-    override fun getActiveSessionsForAuthenticatedAccount(): AccountSessionsResponse {
-        val sessions = sessionService.getActiveSessionsForAuthenticatedAccount()
+  override fun getActiveSessionsForAuthenticatedAccount(): AccountSessionsResponse {
+    val sessions = sessionService.getActiveSessionsForAuthenticatedAccount()
 
-        return AccountSessionsResponse.fromAccountSessions(sessions)
-    }
+    return AccountSessionsResponse.fromAccountSessions(sessions)
+  }
 
-    override fun revokeAllSessionsForAuthenticatedAccount() {
-        sessionService.revokeAllSessionsForAuthenticatedAccount()
-    }
+  override fun revokeAllSessionsForAuthenticatedAccount() {
+    sessionService.revokeAllSessionsForAuthenticatedAccount()
+  }
 
-    override fun revokeSessionById(id: String) {
-        sessionService.revokeSessionById(id)
-    }
+  override fun revokeSessionById(id: String) {
+    sessionService.revokeSessionById(id)
+  }
 }

@@ -6,10 +6,11 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
 
 @Repository
-interface PersonRepository : JpaRepository<Person, String>, JpaSpecificationExecutor<Person> {
+interface PersonRepository :
+  JpaRepository<Person, String>,
+  JpaSpecificationExecutor<Person> {
 
-    fun findByDocumentNumber(documentNumber: String): Person?
+  fun findByDocumentNumber(documentNumber: String): Person?
 
-    fun existsByDocumentNumber(documentNumber: String): Boolean
-
+  fun existsByDocumentNumber(documentNumber: String): Boolean
 }

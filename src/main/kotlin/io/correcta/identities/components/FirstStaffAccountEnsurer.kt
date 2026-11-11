@@ -15,55 +15,54 @@ import org.springframework.stereotype.Component
 
 @Component
 @ConditionalOnProperty(
-    prefix = "identities.first-account",
-    name = ["setup-enabled"],
-    havingValue = "true"
+  prefix = "identities.first-account",
+  name = ["setup-enabled"],
+  havingValue = "true",
 )
 class FirstStaffAccountEnsurer(
-    private val accountService: AccountService,
-    private val setupProperties: FirstStaffAccountSetupProperties,
-    private val institutionalProfileService: InstitutionalProfileService
+  private val accountService: AccountService,
+  private val setupProperties: FirstStaffAccountSetupProperties,
+  private val institutionalProfileService: InstitutionalProfileService,
 ) : CommandLineRunner {
 
-    override fun run(vararg args: String) {
-        log.debug("Checking whether the initial staff account needs to be created")
+  override fun run(vararg args: String) {
+    log.debug("Checking whether the initial staff account needs to be created")
 
-        if (!accountService.isNecessaryToCreateFirstStaffAccount()) {
-            log.debug("Initial staff account already exists")
-            return
-        }
-
-        try {
-            institutionalProfileService.createInstitutionalProfile(
-                createFirstStaffProfileRequest()
-            )
-
-            log.info(
-                "Initial staff account created successfully with login={}",
-                setupProperties.login
-            )
-        } catch (exception: ConflictException) {
-            log.warn(
-                "Initial staff account was not created because a conflicting account already exists: {}",
-                exception.message
-            )
-        }
+    if (!accountService.isNecessaryToCreateFirstStaffAccount()) {
+      log.debug("Initial staff account already exists")
+      return
     }
 
-    private fun createFirstStaffProfileRequest() =
-        CreateInstitutionalProfileRequest(
-            type = InstitutionalProfileType.STAFF,
-            email = setupProperties.email,
-            person = PersonReferenceRequest(
-                legalName = setupProperties.personName,
-                documentNumber = setupProperties.personDocumentNumber
-            ),
-            credential = CreateCredentialRequest(
-                login = setupProperties.login
-            )
-        )
+    try {
+      institutionalProfileService.createInstitutionalProfile(
+        createFirstStaffProfileRequest(),
+      )
 
-    companion object {
-        private val log = LoggerFactory.getLogger(FirstStaffAccountEnsurer::class.java)
+      log.info(
+        "Initial staff account created successfully with login={}",
+        setupProperties.login,
+      )
+    } catch (exception: ConflictException) {
+      log.warn(
+        "Initial staff account was not created because a conflicting account already exists: {}",
+        exception.message,
+      )
     }
+  }
+
+  private fun createFirstStaffProfileRequest() = CreateInstitutionalProfileRequest(
+    type = InstitutionalProfileType.STAFF,
+    email = setupProperties.email,
+    person = PersonReferenceRequest(
+      legalName = setupProperties.personName,
+      documentNumber = setupProperties.personDocumentNumber,
+    ),
+    credential = CreateCredentialRequest(
+      login = setupProperties.login,
+    ),
+  )
+
+  companion object {
+    private val log = LoggerFactory.getLogger(FirstStaffAccountEnsurer::class.java)
+  }
 }

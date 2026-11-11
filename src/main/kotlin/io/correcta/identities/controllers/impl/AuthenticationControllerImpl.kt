@@ -13,37 +13,36 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class AuthenticationControllerImpl(
-    val authenticationService: AuthenticationService,
-    val clientInfoResolver: ClientInfoResolver
+  val authenticationService: AuthenticationService,
+  val clientInfoResolver: ClientInfoResolver,
 ) : AuthenticationController {
-    override fun loginUser(
-        request: HttpServletRequest,
-        body: LoginUserRequest
-    ): ResponseEntity<TokenResponse> {
-        val clientInfo = clientInfoResolver.resolve(request)
+  override fun loginUser(
+    request: HttpServletRequest,
+    body: LoginUserRequest,
+  ): ResponseEntity<TokenResponse> {
+    val clientInfo = clientInfoResolver.resolve(request)
 
-        val tokenResponse = authenticationService.doUserLogin(
-            request = body,
-            clientInfo = clientInfo
-        )
+    val tokenResponse = authenticationService.doUserLogin(
+      request = body,
+      clientInfo = clientInfo,
+    )
 
-        return ResponseEntity.ok(tokenResponse)
-    }
+    return ResponseEntity.ok(tokenResponse)
+  }
 
-    override fun logoutUser(principal: ProfilePrincipal): ResponseEntity<Void> {
-        authenticationService.doLogOut(
-            sessionId = principal.sessionId,
-        )
+  override fun logoutUser(principal: ProfilePrincipal): ResponseEntity<Void> {
+    authenticationService.doLogOut(
+      sessionId = principal.sessionId,
+    )
 
-        return ResponseEntity.noContent().build()
-    }
+    return ResponseEntity.noContent().build()
+  }
 
-    override fun refreshAccessToken(request: RefreshTokenRequest): ResponseEntity<TokenResponse> {
-        val tokenResponse = authenticationService.doRefreshToken(
-            rawRefreshToken = request.refreshToken
-        )
+  override fun refreshAccessToken(request: RefreshTokenRequest): ResponseEntity<TokenResponse> {
+    val tokenResponse = authenticationService.doRefreshToken(
+      rawRefreshToken = request.refreshToken,
+    )
 
-        return ResponseEntity.ok(tokenResponse)
-    }
-
+    return ResponseEntity.ok(tokenResponse)
+  }
 }

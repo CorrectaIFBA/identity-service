@@ -10,18 +10,12 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class ProfileLookupControllerImpl(
-    val institutionalProfileService: InstitutionalProfileService
+  val institutionalProfileService: InstitutionalProfileService,
 ) : ProfileLookupController {
 
-    override fun getProfile(profileId: String): GetProfileLookupResponse {
-        return institutionalProfileService.getProfileLookup(profileId)
-    }
+  override fun getProfile(profileId: String): GetProfileLookupResponse = institutionalProfileService.getProfileLookup(profileId)
 
-    override fun searchProfiles(search: String, type: InstitutionalProfileType?, size: Int): List<GetProfileLookupResponse> {
-        return institutionalProfileService.searchProfileLookups(search, type, size)
-    }
+  override fun searchProfiles(search: String, type: InstitutionalProfileType?, size: Int): List<GetProfileLookupResponse> = institutionalProfileService.searchProfileLookups(search, type, size)
 
-    override fun getProfiles(body: ProfileBatchLookupRequest): ProfileBatchLookupResponse {
-        return institutionalProfileService.lookupProfiles(body)
-    }
+  override fun getProfiles(body: ProfileBatchLookupRequest): ProfileBatchLookupResponse = institutionalProfileService.lookupProfiles(body)
 }

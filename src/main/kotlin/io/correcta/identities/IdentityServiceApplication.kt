@@ -13,5 +13,5 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy
 class LegalInquiriesApplication
 
 fun main(args: Array<String>) {
-    runApplication<LegalInquiriesApplication>(*args)
+  runApplication<LegalInquiriesApplication>(*args)
 }

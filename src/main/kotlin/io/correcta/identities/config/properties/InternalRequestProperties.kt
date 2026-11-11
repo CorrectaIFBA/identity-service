@@ -4,5 +4,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties("identities.internal")
 data class InternalRequestProperties(
-    val token: String = ""
+  val token: String = "",
 )

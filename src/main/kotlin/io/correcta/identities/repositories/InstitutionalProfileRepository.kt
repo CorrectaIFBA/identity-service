@@ -13,25 +13,25 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface InstitutionalProfileRepository :
-    JpaRepository<InstitutionalProfile, String>,
-    JpaSpecificationExecutor<InstitutionalProfile> {
+  JpaRepository<InstitutionalProfile, String>,
+  JpaSpecificationExecutor<InstitutionalProfile> {
 
-    fun countByType(type: InstitutionalProfileType): Long
+  fun countByType(type: InstitutionalProfileType): Long
 
-    fun countByTypeAndState(type: InstitutionalProfileType, state: InstitutionalProfileState): Long
+  fun countByTypeAndState(type: InstitutionalProfileType, state: InstitutionalProfileState): Long
 
-    fun existsByPersonIdAndTypeAndStateNot(
-        personId: String,
-        type: InstitutionalProfileType,
-        state: InstitutionalProfileState
-    ): Boolean
+  fun existsByPersonIdAndTypeAndStateNot(
+    personId: String,
+    type: InstitutionalProfileType,
+    state: InstitutionalProfileState,
+  ): Boolean
 
-    @EntityGraph(attributePaths = ["accountCredential"])
-    fun findAllByPersonIdOrderByCreatedAtAsc(personId: String): List<InstitutionalProfile>
+  @EntityGraph(attributePaths = ["accountCredential"])
+  fun findAllByPersonIdOrderByCreatedAtAsc(personId: String): List<InstitutionalProfile>
 
-    @EntityGraph(attributePaths = ["person", "accountCredential"])
-    fun findAllByIdIn(ids: Collection<String>): List<InstitutionalProfile>
+  @EntityGraph(attributePaths = ["person", "accountCredential"])
+  fun findAllByIdIn(ids: Collection<String>): List<InstitutionalProfile>
 
-    @EntityGraph(attributePaths = ["person", "accountCredential"])
-    override fun findAll(spec: Specification<InstitutionalProfile>?, pageable: Pageable): Page<InstitutionalProfile>
+  @EntityGraph(attributePaths = ["person", "accountCredential"])
+  override fun findAll(spec: Specification<InstitutionalProfile>?, pageable: Pageable): Page<InstitutionalProfile>
 }
