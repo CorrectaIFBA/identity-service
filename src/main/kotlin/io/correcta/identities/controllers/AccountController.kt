@@ -23,84 +23,95 @@ import org.springframework.web.bind.annotation.RequestMapping
 @Tag(name = "Accounts", description = "Account management operations endpoint.")
 interface AccountController {
 
-    @Operation(
-        summary = "Create account password",
-        description = "Creates the password for the authenticated account activation request. The password and confirmation must be provided and must match.",
-        security = [SecurityRequirement(name = "bearerAuth")]
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "201",
-                description = "Account password successfully created."
-            ),
-            ApiResponse(
-                responseCode = "400",
-                description = "Invalid request payload, such as blank or mismatched passwords.",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = ValidationErrorResponse::class)
-                )]
-            ),
-            ApiResponse(
-                responseCode = "401",
-                description = "A valid account activation token is required.",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = ErrorResponse::class)
-                )]
-            ),
-            ApiResponse(
-                responseCode = "500",
-                description = "Internal server error.",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = ErrorResponse::class)
-                )]
-            )
-        ]
-    )
-    @PostMapping("/create-password")
-    @IsAccountActivationRequest
-    fun createAccountPassword(
-        @Valid @RequestBody body: CreatePasswordRequest
-    )
+  @Operation(
+    summary = "Create account password",
+    description = "Creates the password for the authenticated account activation request. The password and confirmation must be provided and must match.",
+    security = [SecurityRequirement(name = "bearerAuth")],
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "201",
+        description = "Account password successfully created.",
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Invalid request payload, such as blank or mismatched passwords.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ValidationErrorResponse::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "A valid account activation token is required.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Internal server error.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  @PostMapping("/create-password")
+  @IsAccountActivationRequest
+  fun createAccountPassword(
+    @Valid @RequestBody body: CreatePasswordRequest,
+  )
 
-    @Operation(
-        summary = "Get authenticated account information",
-        description = "Returns the account, traits, institutional profile and person information associated with the authenticated user. Revoked or expired sessions are rejected.",
-        security = [SecurityRequirement(name = "bearerAuth")]
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "Authenticated account information successfully retrieved.",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = GetSelfAccountInfoResponse::class)
-                )]
-            ),
-            ApiResponse(
-                responseCode = "401",
-                description = "Authentication is required.",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = ErrorResponse::class)
-                )]
-            ),
-            ApiResponse(
-                responseCode = "500",
-                description = "Internal server error.",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = ErrorResponse::class)
-                )]
-            )
-        ]
-    )
-    @GetMapping("/me")
-    @IsLoggedUser
-    fun getSelfAccountInfo(): GetSelfAccountInfoResponse
-
+  @Operation(
+    summary = "Get authenticated account information",
+    description = "Returns the account, institutional profile and person information associated with the authenticated user. Revoked or expired sessions are rejected.",
+    security = [SecurityRequirement(name = "bearerAuth")],
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Authenticated account information successfully retrieved.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = GetSelfAccountInfoResponse::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Authentication is required.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Internal server error.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  @GetMapping("/me")
+  @IsLoggedUser
+  fun getSelfAccountInfo(): GetSelfAccountInfoResponse
 }

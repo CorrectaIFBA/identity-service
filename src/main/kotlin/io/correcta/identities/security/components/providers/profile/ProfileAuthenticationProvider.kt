@@ -6,35 +6,29 @@ import io.correcta.identities.security.components.providers.profile.models.Profi
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
 
 @Component
 class ProfileAuthenticationProvider(
-    jsonWebTokenProperties: JsonWebTokenProperties,
+  jsonWebTokenProperties: JsonWebTokenProperties,
 ) {
 
-    private val signingKey =
-        Keys.hmacShaKeyFor(jsonWebTokenProperties.secret.toByteArray())
+  private val signingKey =
+    Keys.hmacShaKeyFor(jsonWebTokenProperties.secret.toByteArray())
 
-    fun getAuthentication(token: String): UsernamePasswordAuthenticationToken {
-        val claims = Jwts.parserBuilder()
-            .setSigningKey(signingKey)
-            .build()
-            .parseClaimsJws(token)
-            .body
+  fun getAuthentication(token: String): UsernamePasswordAuthenticationToken {
+    val claims = Jwts.parserBuilder()
+      .setSigningKey(signingKey)
+      .build()
+      .parseClaimsJws(token)
+      .body
 
-        val principal = ProfilePrincipal(
-            profileId = claims.subject,
-            sessionId = claims["sid", String::class.java],
-            type = claims["profile", String::class.java].let { InstitutionalProfileType.valueOf(it) }
-        )
+    val principal = ProfilePrincipal(
+      profileId = claims.subject,
+      sessionId = claims["sid", String::class.java],
+      type = claims["profile", String::class.java].let { InstitutionalProfileType.valueOf(it) },
+    )
 
-        val authorities = (claims["traits"] as? List<*>)
-            .orEmpty()
-            .filterIsInstance<String>()
-            .map(::SimpleGrantedAuthority)
-
-        return UsernamePasswordAuthenticationToken(principal, null, authorities)
-    }
+    return UsernamePasswordAuthenticationToken(principal, null, emptyList())
+  }
 }
